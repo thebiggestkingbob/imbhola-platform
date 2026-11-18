@@ -1,6 +1,6 @@
 import Link from 'next/link';
 const SECTIONS = [
-  ['Overview',''], ['Workforce','workforce'], ['Training catalogue','training'],
+  ['Overview',''], ['My learning','my-learning'], ['Workforce','workforce'], ['Training catalogue','training'],
   ['Training events','training-events'], ['WSP plans','wsp'], ['ATR records','atr'],
   ['Evidence','evidence'], ['Approvals','approvals'], ['Grants','grants'],
   ['Tasks','tasks'], ['Reporting years','reporting']
