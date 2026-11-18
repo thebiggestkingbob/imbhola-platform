@@ -14,7 +14,8 @@
     "test:evidence": "node --test scripts/test-evidence.mjs",
     "test:services-seta": "node --test scripts/test-services-seta.mjs",
     "test:services-guideline": "node --test scripts/test-services-guideline.mjs",
-    "check:release-safety": "node scripts/check-release-safety.mjs"
+    "check:release-safety": "node scripts/check-release-safety.mjs",
+    "test:rpc-security": "node --test scripts/test-rpc-security.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.6.1",
