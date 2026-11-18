@@ -2,8 +2,12 @@ import { notFound } from 'next/navigation';
 import { requireOrgWorkspace } from '@/lib/workspace/access';
 import { WORKSPACE_SECTIONS, isWorkspaceSection } from '@/lib/workspace/sections';
 import TrainingProgramForm from '@/components/TrainingProgramForm';
+import WorkspaceDraftForm from '@/components/WorkspaceDraftForm';
 
 export const dynamic = 'force-dynamic';
+function isWorkspaceDraftSection(s:string):s is 'reporting'|'training-events'|'wsp'|'atr'|'tasks' {
+  return ['reporting','training-events','wsp','atr','tasks'].includes(s);
+}
 
 function readable(value: unknown): string {
   if (value === null || value === undefined || value === '') return '—';
@@ -22,17 +26,29 @@ export default async function WorkspaceSectionPage({ params }: {
   // Table and fields come exclusively from a server-owned allowlist.
   const { data: records, error } = await client
     .from(config.table)
-    .select(config.columns.map(c => c.key).join(','))
+    .select('id,' + config.columns.map(c => c.key).join(','))
     .eq('organization_id',organizationId)
     .limit(100);
 
-  const canManageTraining = section === 'training' &&
-    roles.some(r => ['company_admin','hr_admin','training_admin','sdf'].includes(r));
+  const canEdit = roles.some(r => ['company_admin','hr_admin','training_admin','sdf'].includes(r));
+  const canManageTraining = section === 'training' && canEdit;
+  const draftSection = ['reporting','training-events','wsp','atr','tasks'].includes(section);
+  const canManageDraft = canEdit && draftSection && (section !== 'reporting' || roles.some(r=>['company_admin','hr_admin','sdf'].includes(r)));
+  const [programResult, cycleResult, eventResult] = canManageDraft ? await Promise.all([
+    client.from('training_programs').select('id,title').eq('organization_id',organizationId).order('title').limit(100),
+    client.from('reporting_cycles').select('id,reporting_year').eq('organization_id',organizationId).eq('status','draft').order('reporting_year',{ascending:false}).limit(25),
+    client.from('training_events').select('id,event_date').eq('organization_id',organizationId).eq('status','completed').order('event_date',{ascending:false}).limit(100),
+  ]) : [{data:[]},{data:[]},{data:[]}];
+  const programs = (programResult.data || []).map(p=>({id:p.id,label:p.title}));
+  const cycles = (cycleResult.data || []).map(c=>({id:c.id,label:String(c.reporting_year)}));
+  const events = (eventResult.data || []).map(e=>({id:e.id,label:e.event_date}));
 
   return <section aria-labelledby="section-title">
     <h2 className="workspace-section-title" id="section-title">{config.label}</h2>
     <p className="workspace-caption">{config.summary}</p>
     {canManageTraining && <TrainingProgramForm organizationId={organizationId}/>}
+    {canManageDraft && isWorkspaceDraftSection(section) && <WorkspaceDraftForm organizationId={organizationId} section={section} programs={programs} cycles={cycles} events={events}/>}
+    
     {error ? <p className="notice" role="alert">This section could not be loaded. Your role may not have access, or the service may be unavailable.</p> :
       !records?.length ? <p className="notice">No authorised records are available in this section yet.</p> :
       <div className="workspace-table-scroll"><table className="workspace-table">
