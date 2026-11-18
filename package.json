@@ -11,7 +11,8 @@
     "smoke": "node scripts/smoke-test.mjs",
     "test:workforce": "node --test scripts/test-workforce.mjs",
     "test:ofo": "node --test scripts/test-ofo.mjs",
-    "test:evidence": "node --test scripts/test-evidence.mjs"
+    "test:evidence": "node --test scripts/test-evidence.mjs",
+    "test:services-seta": "node --test scripts/test-services-seta.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.6.1",
