@@ -68,7 +68,7 @@ export default async function WorkspaceSectionPage({ params }: {
     {section==='reporting' && rows && <div className="workspace-review-list">
       {rows.map(r => <ReviewCycleControls key={String(r.id)}
         organizationId={organizationId}
-        cycleId={String((r as {id:string}).id)}
+        cycleId={String((r as unknown as {id:string}).id)}
         reportingYear={Number(r.reporting_year)}
         status={String(r.status)} roles={roles}/>)}
     </div>}
