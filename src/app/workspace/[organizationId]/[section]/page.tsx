@@ -4,6 +4,7 @@ import { requireOrgWorkspace } from '@/lib/workspace/access';
 import { WORKSPACE_SECTIONS, isWorkspaceSection } from '@/lib/workspace/sections';
 import TrainingProgramForm from '@/components/TrainingProgramForm';
 import WorkspaceDraftForm from '@/components/WorkspaceDraftForm';
+import ReviewCycleControls from '@/components/ReviewCycleControls';
 import { completeTrainingEvent } from '@/lib/workspace/draft-actions';
 
 export const dynamic = 'force-dynamic';
@@ -63,6 +64,13 @@ export default async function WorkspaceSectionPage({ params }: {
             <button type="submit" className="workspace-mini-button">Mark completed</button>
           </form> : '—'}</td>}</tr>)}</tbody>
       </table></div>}
+    {section==='reporting' && records && <div className="workspace-review-list">
+      {records.map(r => <ReviewCycleControls key={String((r as {id:string}).id)}
+        organizationId={organizationId}
+        cycleId={String((r as {id:string}).id)}
+        reportingYear={Number((r as {reporting_year:number}).reporting_year)}
+        status={String((r as {status:string}).status)} roles={roles}/>)}
+    </div>}
     {records && records.length===100 && <p className="workspace-caption">Showing first 100 records. Pagination will be added before pilot use.</p>}
   </section>;
 }
