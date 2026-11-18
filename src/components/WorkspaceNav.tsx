@@ -4,6 +4,8 @@ type Role=string;
 const entries:{title:string;slug:string;roles:readonly string[]}[]=[
   {title:'Overview',slug:'',roles:['*']},
   {title:'My learning',slug:'my-learning',roles:['*']},
+  {title:'Company & SDL',slug:'company',roles:['company_admin','executive','hr_admin','sdf','auditor']},
+  {title:'Levy records',slug:'levies',roles:['company_admin','executive','hr_admin','sdf','auditor']},
   {title:'Workforce',slug:'workforce',roles:['company_admin','hr_admin','training_admin','sdf','auditor']},
   {title:'Training catalogue',slug:'training',roles:['*']},
   {title:'Training events',slug:'training-events',roles:['company_admin','executive','hr_admin','training_admin','sdf','line_manager','committee_member','signatory','auditor']},
