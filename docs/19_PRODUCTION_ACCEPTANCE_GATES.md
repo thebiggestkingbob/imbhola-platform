@@ -34,3 +34,6 @@ The automated `npm run check:release-safety` CI check asserts that regulated fea
 A read-only live-schema audit of four public SECURITY DEFINER functions passed **structural** checks for (a) authenticated-only execution, (b) identity checks, (c) pinned empty search path, and (d) role checks or recipient matching. The checked functions are `accept_organization_invite`, `issue_organization_invite`, `request_reporting_cycle_changes`, and `submit_reporting_cycle_for_review`. Re-run `supabase/tests/security_definer_rpc_audit.sql` on staging after changes. **Not a substitute for actual negative execution tests or security sign-off.**
 
 Vercel team `kingbob-3860` still returns zero matching `imbhola` projects through the connected integration at this check; no staging URL is verified.
+
+## 2026-11-18 negative authorization test preparation
+Added `supabase/tests/rpc_negative_unassigned.sql`: rollback-only checks that a synthetic, unassigned authenticated identity cannot issue invitations, submit reporting cycles, request changes or redeem an arbitrary invitation token. **Not executed** against the existing database because it is not a verified isolated staging clone. Run on a dedicated staging clone, then expand to revoked membership, cross-tenant access, expired invitation, replay and race tests. The script is not an end-to-end authorization certification.
