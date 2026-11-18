@@ -9,6 +9,7 @@ const entries:{title:string;slug:string;roles:readonly string[]}[]=[
   {title:'Team',slug:'team',roles:['company_admin','hr_admin']},
   {title:'Workforce',slug:'workforce',roles:['company_admin','hr_admin','training_admin','sdf','auditor']},
   {title:'Import preview',slug:'workforce-import',roles:['company_admin','hr_admin','sdf']},
+  {title:'OFO references',slug:'ofo',roles:['company_admin','hr_admin','training_admin','sdf','auditor']},
   {title:'Training catalogue',slug:'training',roles:['*']},
   {title:'Training events',slug:'training-events',roles:['company_admin','executive','hr_admin','training_admin','sdf','line_manager','committee_member','signatory','auditor']},
   {title:'WSP plans',slug:'wsp',roles:['company_admin','executive','hr_admin','training_admin','sdf','line_manager','committee_member','signatory','auditor']},
