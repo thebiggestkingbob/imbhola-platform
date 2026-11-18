@@ -29,3 +29,8 @@ The owner, security reviewer, legal/privacy reviewer, SDF subject-matter reviewe
 The automated `npm run check:release-safety` CI check asserts that regulated features remain hard-disabled in `src/lib/release-gates.ts`. It is a preventive check only; it is not proof of production security or compliance.
 
 **Next technical sequence:** confirm Vercel staging project and preview URL; implement negative authorization tests against dedicated synthetic tenants; inspect official workbooks; build verified adapter; complete evidence storage and WSP/ATR signed review pack; perform full staging UAT.
+
+## 2026-11-18 verified Supabase RPC inspection
+A read-only live-schema audit of four public SECURITY DEFINER functions passed **structural** checks for (a) authenticated-only execution, (b) identity checks, (c) pinned empty search path, and (d) role checks or recipient matching. The checked functions are `accept_organization_invite`, `issue_organization_invite`, `request_reporting_cycle_changes`, and `submit_reporting_cycle_for_review`. Re-run `supabase/tests/security_definer_rpc_audit.sql` on staging after changes. **Not a substitute for actual negative execution tests or security sign-off.**
+
+Vercel team `kingbob-3860` still returns zero matching `imbhola` projects through the connected integration at this check; no staging URL is verified.
