@@ -10,7 +10,8 @@
     "lint": "eslint .",
     "smoke": "node scripts/smoke-test.mjs",
     "test:workforce": "node --test scripts/test-workforce.mjs",
-    "test:ofo": "node --test scripts/test-ofo.mjs"
+    "test:ofo": "node --test scripts/test-ofo.mjs",
+    "test:evidence": "node --test scripts/test-evidence.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.6.1",
