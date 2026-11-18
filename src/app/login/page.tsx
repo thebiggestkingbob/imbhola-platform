@@ -15,6 +15,7 @@ export default function Login() {
       <p className="notice" role="status">Sign-in is not active in this development environment. No credentials are collected on this page.</p>
     }
     <p className="identity-note">New company registration is not open. Organisation access is issued only after verification and explicit approval.</p>
+    <p className="identity-note"><Link className="text-link" href="/forgot-password">Forgot your password?</Link> · <Link className="text-link" href="/signup">Create account</Link></p>
     <Link className="text-link" href="/">Back to the website →</Link>
   </main>;
 }
