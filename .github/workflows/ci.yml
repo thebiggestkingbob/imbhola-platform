@@ -3,19 +3,18 @@ on:
   pull_request:
   push:
     branches: [main]
+permissions:
+  contents: read
 jobs:
   checks:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: npm
-          cache-dependency-path: package-lock.json
-      - run: npm ci
+      # Use npm install until a reviewed package-lock.json has been generated and committed.
+      - run: npm install --no-audit --no-fund
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run build
