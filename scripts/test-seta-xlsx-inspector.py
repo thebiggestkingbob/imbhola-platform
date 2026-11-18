@@ -21,7 +21,7 @@ RELS = b'''<?xml version="1.0"?><Relationships
 SHEET = b'''<?xml version="1.0"?>
 <worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
 <dimension ref="A1:B2"/><sheetData>
-<row r="1"><c r="A1" t="inlineStr"><is><t>Employee</t></is></c><c r="B1"><f>1+1</f></c></row>
+<row r="1"><c r="A1" t="inlineStr"><is><t>PRIVATE_SENTINEL_TEST_DATA</t></is></c><c r="B1"><f>1+1</f></c></row>
 </sheetData>
 <dataValidations count="1"><dataValidation type="list" sqref="A2"/></dataValidations>
 </worksheet>'''
@@ -46,7 +46,7 @@ class WorkbookInspectorTests(unittest.TestCase):
             self.assertEqual(result["sheets"][0]["sheet_name"], "Employees")
             self.assertEqual(result["sheets"][0]["formula_cells"], 1)
             self.assertEqual(result["sheets"][0]["data_validation_rules"], 1)
-            self.assertNotIn("Employee", str(result["sheets"][0]))
+            self.assertNotIn("PRIVATE_SENTINEL_TEST_DATA", str(result["sheets"][0]))
 
     def test_rejects_macro_content(self):
         with tempfile.TemporaryDirectory() as directory:
