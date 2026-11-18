@@ -49,7 +49,8 @@ export default async function Dashboard() {
           return <article className="card" key={membership.organization_id + membership.role}>
             <span className="card-number">{ROLE_NAMES[membership.role] ?? 'Member'}</span>
             <h3>{org.display_name || org.legal_name}</h3>
-            <p>Verified organisation. Detailed workflows are not yet available.</p>
+            <p>Verified organisation. Open the sections your role is authorised to use.</p>
+            <Link href={'/workspace/' + membership.organization_id} className="text-link">Open workspace →</Link>
           </article>;
         })}
       </div>
