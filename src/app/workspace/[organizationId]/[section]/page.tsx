@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation';
+import Link from 'next/link';
 import { requireOrgWorkspace } from '@/lib/workspace/access';
 import { WORKSPACE_SECTIONS, isWorkspaceSection } from '@/lib/workspace/sections';
 import TrainingProgramForm from '@/components/TrainingProgramForm';
@@ -47,6 +48,7 @@ export default async function WorkspaceSectionPage({ params }: {
   return <section aria-labelledby="section-title">
     <h2 className="workspace-section-title" id="section-title">{config.label}</h2>
     <p className="workspace-caption">{config.summary}</p>
+    {(section==='wsp'||section==='atr') && roles.some(r=>['company_admin','executive','hr_admin','training_admin','sdf','signatory','auditor'].includes(r)) && <p className="workspace-caption"><Link className="text-link" href={'/api/workspace/'+organizationId+'/draft-export?type='+section}>Export internal working draft (.csv) →</Link> · Not an official SETA template.</p>}
     {canManageTraining && <TrainingProgramForm organizationId={organizationId}/>}
     {canManageDraft && isWorkspaceDraftSection(section) && <WorkspaceDraftForm organizationId={organizationId} section={section} programs={programs} cycles={cycles} events={events}/>}
     
