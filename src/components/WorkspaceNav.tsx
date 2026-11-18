@@ -16,6 +16,7 @@ const entries:{title:string;slug:string;roles:readonly string[]}[]=[
   {title:'Approvals',slug:'approvals',roles:['company_admin','executive','hr_admin','sdf','committee_member','signatory','auditor']},
   {title:'Grants',slug:'grants',roles:['company_admin','executive','hr_admin','sdf','auditor']},
   {title:'Tasks',slug:'tasks',roles:['*']},
+  {title:'Readiness',slug:'validation',roles:['company_admin','executive','hr_admin','training_admin','sdf','committee_member','signatory','auditor']},
   {title:'Reporting years',slug:'reporting',roles:['company_admin','executive','hr_admin','training_admin','sdf','line_manager','committee_member','signatory','auditor']},
 ];
 export default function WorkspaceNav({organizationId,roles}:{organizationId:string;roles:Role[]}){
