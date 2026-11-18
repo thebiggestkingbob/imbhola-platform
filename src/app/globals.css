@@ -107,3 +107,12 @@ h2{font-size:clamp(36px,5vw,70px);margin-bottom:52px}
 .workspace-entry-form textarea{padding:13px;font:inherit;border:1px solid var(--line);background:white;color:var(--ink);grid-column:1/-1;width:100%;resize:vertical}
 .workspace-mini-button{border:1px solid var(--forest);padding:7px 12px;border-radius:3px;background:white;color:var(--forest);cursor:pointer;font:inherit;font-size:12px;white-space:nowrap}
 .workspace-mini-button:hover{background:var(--cream)}
+
+.workspace-readiness{border-top:1px solid var(--line);padding:32px 0;margin:30px 0}
+.workspace-readiness h3{font-size:clamp(22px,3vw,35px);letter-spacing:-.04em}
+.workspace-check-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.workspace-check{padding:24px;border:1px solid var(--line);background:var(--cream)}
+.workspace-check strong{font-size:16px}
+.workspace-check p{margin:14px 0;color:var(--muted);line-height:1.5}
+.mfa-secret{display:block;overflow-wrap:anywhere;background:var(--white);border:1px solid var(--line);padding:16px;font-size:15px}
+@media(max-width:650px){.workspace-check-grid{grid-template-columns:1fr}}
