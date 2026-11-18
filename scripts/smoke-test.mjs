@@ -47,6 +47,14 @@ async function main(){
     }
     console.log('PASS',path,response.status);
   }
+  const rootResponse=await get('/');
+  if(rootResponse.headers.get('x-frame-options')!=='DENY')throw Error('Frame embedding must be denied');
+  if(rootResponse.headers.get('x-content-type-options')!=='nosniff')throw Error('MIME sniffing protection missing');
+  if(!rootResponse.headers.get('x-robots-tag')?.includes('noindex'))throw Error('Private preview must not be indexed');
+  const robotsResponse=await get('/robots.txt');
+  if(robotsResponse.status!==200 || !(await robotsResponse.text()).includes('Disallow: /')){
+    throw Error('Private preview robots policy missing');
+  }
   const health=await (await get('/api/health')).json();
   if(health.officialSetaExports!==false)throw Error('Official SETA exports must remain disabled');
   const account=await (await get('/api/account')).json();
