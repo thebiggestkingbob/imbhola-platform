@@ -13,7 +13,8 @@
     "test:ofo": "node --test scripts/test-ofo.mjs",
     "test:evidence": "node --test scripts/test-evidence.mjs",
     "test:services-seta": "node --test scripts/test-services-seta.mjs",
-    "test:services-guideline": "node --test scripts/test-services-guideline.mjs"
+    "test:services-guideline": "node --test scripts/test-services-guideline.mjs",
+    "check:release-safety": "node scripts/check-release-safety.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.6.1",
