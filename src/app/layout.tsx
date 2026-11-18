@@ -1,0 +1,3 @@
+import type { Metadata } from 'next';import Header from '@/components/Header';import './globals.css';
+export const metadata: Metadata={title:{default:'Imbhola | Skills development, made clearer',template:'%s | Imbhola'},description:'A considered workspace for skills development planning, training evidence and reporting readiness.'};
+export default function RootLayout({children}:{children:React.ReactNode}){return <html lang="en"><body><Header/>{children}<footer className="footer"><div><strong>IMBHOLA.</strong><p>Skills development, made clearer.</p></div><div>Built for the people behind the reporting.</div><span>© {new Date().getFullYear()} Imbhola</span></footer></body></html>}

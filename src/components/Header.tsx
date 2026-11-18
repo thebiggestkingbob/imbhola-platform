@@ -1,0 +1,3 @@
+import Link from 'next/link';
+const links=[['Platform','/platform'],['Solutions','/solutions'],['About','/about'],['Contact','/contact']];
+export default function Header(){return <header className="site-header"><Link className="wordmark" href="/" aria-label="Imbhola home">IMBHOLA<span className="wordmark-dot">.</span></Link><nav aria-label="Primary navigation" className="main-nav">{links.map(([name,url])=><Link key={url} href={url}>{name}</Link>)}</nav><div className="header-actions"><Link href="/login">Sign in</Link><Link className="button button-small" href="/signup">Get started</Link></div></header>}
