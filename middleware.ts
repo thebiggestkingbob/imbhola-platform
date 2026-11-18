@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient } from '@supabase/ssr';
+import { createServerClient, type CookieOptions } from '@supabase/ssr';
 
 /**
  * Refresh identity cookies on account routes. This is not an authorization layer:
@@ -19,7 +19,7 @@ export async function middleware(request: NextRequest) {
       getAll() {
         return request.cookies.getAll();
       },
-      setAll(cookiesToSet) {
+      setAll(cookiesToSet: { name:string; value:string; options:CookieOptions }[]) {
         for (const { name, value } of cookiesToSet) {
           request.cookies.set(name, value);
         }
@@ -36,5 +36,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/login', '/api/account'],
+  matcher: ['/dashboard/:path*', '/workspace/:path*', '/account/:path*', '/ops/:path*', '/login', '/signup', '/apply', '/team/:path*', '/api/account'],
 };
