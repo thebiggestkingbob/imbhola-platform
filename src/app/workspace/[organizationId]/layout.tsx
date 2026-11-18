@@ -15,7 +15,7 @@ export default async function OrganizationLayout({
     <p className="workspace-back"><Link href="/dashboard">← All organisations</Link></p>
     <h1 className="workspace-title">{organization.display_name || organization.legal_name}</h1>
     <p className="workspace-caption">Verified organisation · {roles.join(' · ').replaceAll('_',' ')}</p>
-    <WorkspaceNav organizationId={organizationId}/>
+    <WorkspaceNav organizationId={organizationId} roles={roles}/>
     {children}
   </main>;
 }
