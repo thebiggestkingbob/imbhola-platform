@@ -3,6 +3,7 @@ import { requireOrgWorkspace } from '@/lib/workspace/access';
 import { WORKSPACE_SECTIONS, isWorkspaceSection } from '@/lib/workspace/sections';
 import TrainingProgramForm from '@/components/TrainingProgramForm';
 import WorkspaceDraftForm from '@/components/WorkspaceDraftForm';
+import { completeTrainingEvent } from '@/lib/workspace/draft-actions';
 
 export const dynamic = 'force-dynamic';
 function isWorkspaceDraftSection(s:string):s is 'reporting'|'training-events'|'wsp'|'atr'|'tasks' {
@@ -52,10 +53,13 @@ export default async function WorkspaceSectionPage({ params }: {
     {error ? <p className="notice" role="alert">This section could not be loaded. Your role may not have access, or the service may be unavailable.</p> :
       !records?.length ? <p className="notice">No authorised records are available in this section yet.</p> :
       <div className="workspace-table-scroll"><table className="workspace-table">
-        <thead><tr>{config.columns.map(c=><th key={c.key} scope="col">{c.label}</th>)}</tr></thead>
+        <thead><tr>{config.columns.map(c=><th key={c.key} scope="col">{c.label}</th>)}{section==='training-events' && canEdit && <th scope="col">Action</th>}</tr></thead>
         <tbody>{records.map((record,index)=><tr key={index}>{config.columns.map(c=>
           <td key={c.key}>{readable((record as unknown as Record<string,unknown>)[c.key])}</td>
-        )}</tr>)}</tbody>
+        )}{section==='training-events' && canEdit && <td>{(record as unknown as {status?:string;id?:string}).status==='draft' && typeof (record as unknown as {id?:string}).id==='string' ?
+          <form action={completeTrainingEvent.bind(null,organizationId,String((record as unknown as {id?:string}).id))}>
+            <button type="submit" className="workspace-mini-button">Mark completed</button>
+          </form> : '—'}</td>}</tr>)}</tbody>
       </table></div>}
     {records && records.length===100 && <p className="workspace-caption">Showing first 100 records. Pagination will be added before pilot use.</p>}
   </section>;
