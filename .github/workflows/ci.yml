@@ -16,6 +16,7 @@ jobs:
       # Use npm install until a reviewed package-lock.json has been generated and committed.
       - run: npm install --no-audit --no-fund
       - run: npm run test:workforce
+      - run: npm run test:ofo
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run build
