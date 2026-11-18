@@ -71,3 +71,16 @@ export async function createDraftRecord(_previous:Result,data:FormData):Promise<
   revalidatePath('/workspace/'+organizationId);
   return {saved:true,message:'Draft record saved to your organisation.'};
 }
+
+/** Explicit completion transition; Postgres rejects changes to other training event fields. */
+export async function completeTrainingEvent(organizationId:string,eventId:string):Promise<void>{
+  if(!UUID.test(eventId)) return;
+  const {client,roles}=await requireOrgWorkspace(organizationId);
+  if(!roles.some(r=>EDITORS.includes(r)))return;
+  const {error}=await client.from('training_events').update({status:'completed'})
+    .eq('id',eventId).eq('organization_id',organizationId).eq('status','draft');
+  if(!error){
+    revalidatePath('/workspace/'+organizationId+'/training-events');
+    revalidatePath('/workspace/'+organizationId+'/atr');
+  }
+}
