@@ -20,7 +20,7 @@ jobs:
       - run: npm run test:evidence
       - run: npm run test:services-seta
       - run: npm run test:services-guideline
-      - run: python3 -m unittest discover -s scripts -p 'test-seta-xlsx-inspector.py'
+      - run: python3 scripts/test-seta-xlsx-inspector.py
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run build
