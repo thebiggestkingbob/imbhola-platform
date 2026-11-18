@@ -75,3 +75,31 @@ h2{font-size:clamp(36px,5vw,70px);margin-bottom:52px}
 .identity-form button:disabled{opacity:.6;cursor:wait}
 .identity-error{color:#8b2f25;font-weight:600;font-size:14px;line-height:1.5}
 .identity-note{color:var(--muted);font-size:13px;line-height:1.65;max-width:610px;margin:26px 0}
+
+/* Authenticated IMBHOLA workspace — approved Direction 04 editorial language */
+.workspace-title{font-size:clamp(39px,5.5vw,76px);margin-bottom:15px;overflow-wrap:anywhere}
+.workspace-back{font-size:13px;color:var(--muted);margin-bottom:20px}
+.workspace-caption{font-size:15px;line-height:1.6;color:var(--muted);margin:10px 0 30px}
+.workspace-navigation{display:flex;gap:5px;align-items:center;overflow-x:auto;white-space:nowrap;border-block:1px solid var(--line);padding:13px 0;margin:35px 0 55px;scrollbar-width:thin}
+.workspace-navigation a{font-size:13px;padding:12px 15px;flex:none;border-radius:3px}
+.workspace-navigation a:hover,.workspace-navigation a:focus-visible{background:var(--cream);text-decoration:none}
+.workspace-section-title{font-size:clamp(32px,4vw,50px);margin-bottom:15px}
+.workspace-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:28px 0 44px}
+.workspace-metric{display:flex;flex-direction:column;border:1px solid var(--line);padding:22px;gap:20px;min-height:166px}
+.workspace-metric:hover{background:var(--cream);text-decoration:none}
+.workspace-metric span{font-size:13px;color:var(--muted)}
+.workspace-metric strong{font-weight:500;letter-spacing:-.06em;font-size:clamp(37px,4vw,57px)}
+.workspace-metric small{color:var(--forest)}
+.workspace-table-scroll{overflow-x:auto;border:1px solid var(--line);margin:28px 0}
+.workspace-table{border-collapse:collapse;width:100%;font-size:14px;min-width:600px;text-align:left}
+.workspace-table th{font-weight:700;background:var(--cream);padding:18px 14px}
+.workspace-table td{padding:16px 14px;border-top:1px solid var(--line)}
+.workspace-entry-form{display:grid;grid-template-columns:1fr 1fr;gap:12px 16px;padding:24px;border:1px solid var(--line);max-width:760px;margin:35px 0}
+.workspace-entry-form h3{grid-column:1/-1;font-size:21px}
+.workspace-entry-form label{font-size:13px;font-weight:700;align-self:end}
+.workspace-entry-form input,.workspace-entry-form select{padding:13px;font:inherit;border:1px solid var(--line);background:white;color:var(--ink);grid-column:1/-1}
+.workspace-entry-form button,.workspace-entry-form p{justify-self:start;grid-column:1/-1}
+.workspace-entry-form label{grid-column:1/-1}
+.workspace-success{color:var(--forest);font-weight:700;font-size:14px}
+@media(max-width:850px){.workspace-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:500px){.workspace-metrics{grid-template-columns:1fr 1fr}.workspace-metric{padding:15px;min-height:140px}.workspace-navigation{margin:25px 0 35px}.workspace-entry-form{display:block}.workspace-entry-form label{display:block;margin:12px 0 6px}.workspace-entry-form input,.workspace-entry-form select{width:100%}.workspace-entry-form button{margin-top:16px}.workspace-entry-form h3{margin-bottom:22px}}
