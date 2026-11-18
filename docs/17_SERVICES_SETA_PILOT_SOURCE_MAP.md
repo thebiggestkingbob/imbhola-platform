@@ -26,3 +26,17 @@ Source review: 2026-11-18. This is a development reference, **not a legal determ
 - Confirm first pilot employer's Services SETA registration and identify an authorised SDF, employee representative, and executive reviewer.
 - Complete secure evidence, audited signatures and version-locked report pack, plus POPIA review and Vercel staging.
 - External submission stays on Services SETA's official approved system. No access to SETA systems or guaranteed grant awards is implied.
+
+## Supplemental inspectable official employee spreadsheet guideline
+A second official Services SETA PDF URL, https://servicessetawebsite.blob.core.windows.net/wordpresslivesite/2026/02/2026-27-Mandatory-Grant-Employee-Spreadsheet-Guideline.pdf , was directly retrieved and inspected.
+
+**This does not verify the XLSX files.** It describes three logical sheets, in this order:
+1. Employees — fields A–R including SDL, employee/payroll number, identity fields, occupational data and OFO code.
+2. Training Interventions — fields A–N including intervention number, intervention type, costs, provider and PIVOTAL information.
+3. Training Completed and Planned — fields A–K, using employee and intervention number links.
+
+The guidance states employee/intervention identifiers should match exactly across sheets, and an intervention appearing in both ATR and WSP needs separate numbers. The guide instructs that example rows be deleted before LMIS upload. Actual workbook formulas, dropdown lists and validation codes **remain unknown** until the authentic XLSX sources are inspected.
+
+**Source discrepancy:** this PDF displays 2026/27 in its heading, but its page on start/end dates includes historical 2024/25–2025/26 periods. Do not carry those dates into validation or create official exports without confirmation of the applicable reporting period.
+
+The source-derived mapping is in `src/lib/seta/services-guideline.ts`, with tests in `scripts/test-services-guideline.mjs`.
