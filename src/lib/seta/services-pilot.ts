@@ -16,6 +16,7 @@ export const SERVICES_SETA_PILOT = Object.freeze({
     {id:'code-sheet',label:'2026–27 mandatory grants code sheet',url:'https://servicessetawebsite.blob.core.windows.net/wordpresslivesite/2026/02/3.-MG_SOP_ANNEX_MANDATORY-GRANTS_CODE-SHEET.xlsx',review:'linked-not-inspected'},
     {id:'interventions',label:'WSP and ATR intervention matrix',url:'https://servicessetawebsite.blob.core.windows.net/wordpresslivesite/2026/02/e.-MG_SOP_ANNEX_06_26-WSP-AND-ATR-INTERVENTION-MATRIX.pdf',review:'linked-not-inspected'},
     {id:'spreadsheet-guide',label:'2026–27 employee spreadsheet guideline',url:'https://servicessetawebsite.blob.core.windows.net/wordpresslivesite/2026/02/d.-2026-27-Mandatory-Grant_Employee-Spreadsheet-Guideline_Services-SETA.pdf',review:'linked-not-inspected'},
+    {id:'spreadsheet-guide-secondary',label:'2026/27 employee spreadsheet guideline (indexed PDF)',url:'https://servicessetawebsite.blob.core.windows.net/wordpresslivesite/2026/02/2026-27-Mandatory-Grant-Employee-Spreadsheet-Guideline.pdf',review:'inspected'},
   ] as const,
 });
 
