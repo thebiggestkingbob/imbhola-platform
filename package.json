@@ -15,7 +15,8 @@
     "test:services-seta": "node --test scripts/test-services-seta.mjs",
     "test:services-guideline": "node --test scripts/test-services-guideline.mjs",
     "check:release-safety": "node scripts/check-release-safety.mjs",
-    "test:rpc-security": "node --test scripts/test-rpc-security.mjs"
+    "test:rpc-security": "node --test scripts/test-rpc-security.mjs",
+    "test:public-launch-safety": "node --test scripts/test-public-launch-safety.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.6.1",
