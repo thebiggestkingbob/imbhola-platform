@@ -66,3 +66,12 @@ h2{font-size:clamp(36px,5vw,70px);margin-bottom:52px}
 @media(max-width:600px){.roles-grid{grid-template-columns:1fr}.role-tile:nth-child(even){padding-left:0}.actions{align-items:flex-start;flex-direction:column;gap:20px}}
 @media(max-width:440px){.header-actions .button{padding:10px;font-size:12px}.hero h1{font-size:clamp(49px,12vw,70px)}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+
+.identity-form{display:grid;gap:12px;max-width:490px;margin:45px 0;padding:32px;border:1px solid var(--line);background:var(--cream)}
+.identity-form label{font-weight:700;font-size:13px;letter-spacing:.02em}
+.identity-form input{width:100%;padding:15px;border:1px solid var(--line);border-radius:3px;background:var(--white);color:var(--ink);font:inherit}
+.identity-form input:focus-visible{outline:3px solid var(--clay);outline-offset:2px}
+.identity-form button{margin-top:16px;border:0;cursor:pointer;font:inherit;font-weight:700}
+.identity-form button:disabled{opacity:.6;cursor:wait}
+.identity-error{color:#8b2f25;font-weight:600;font-size:14px;line-height:1.5}
+.identity-note{color:var(--muted);font-size:13px;line-height:1.65;max-width:610px;margin:26px 0}
