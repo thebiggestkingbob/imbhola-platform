@@ -1,0 +1,3 @@
+employee_code,given_name,family_name,job_title,department,status,ofo_code
+EXAMPLE-001,Example,Employee,Office Administrator,Operations,active,
+EXAMPLE-002,Sample,Worker,Training Coordinator,People,active,

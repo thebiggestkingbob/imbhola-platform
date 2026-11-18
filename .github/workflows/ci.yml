@@ -15,6 +15,34 @@ jobs:
           node-version: '22'
       # Use npm install until a reviewed package-lock.json has been generated and committed.
       - run: npm install --no-audit --no-fund
+      - run: npm run test:workforce
+      - run: npm run test:ofo
+      - run: npm run test:evidence
+      - run: npm run test:services-seta
+      - run: npm run test:services-guideline
+      - run: python3 scripts/test-seta-xlsx-inspector.py
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run build
+      - run: npm run smoke
+      - name: Smoke check built routes
+        run: |
+          npm run start > /tmp/imbhola-next.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill $SERVER_PID 2>/dev/null || true' EXIT
+          ready=0
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:3000/api/health > /tmp/imbhola-health.json; then
+              ready=1
+              break
+            fi
+            sleep 1
+          done
+          if [ "$ready" != "1" ]; then cat /tmp/imbhola-next.log; exit 1; fi
+          for route in / /platform /solutions /about /how-it-works /contact /login /signup /dashboard /privacy /terms; do
+            curl --fail --silent --show-error "http://127.0.0.1:3000$route" > /dev/null
+            echo "OK $route"
+          done
+          grep -q '"officialSetaExports":false' /tmp/imbhola-health.json
+          code=$(curl --silent --output /dev/null --write-out '%{http_code}' http://127.0.0.1:3000/api/account)
+          test "$code" = "503"
