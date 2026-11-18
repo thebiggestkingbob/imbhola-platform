@@ -103,3 +103,7 @@ h2{font-size:clamp(36px,5vw,70px);margin-bottom:52px}
 .workspace-success{color:var(--forest);font-weight:700;font-size:14px}
 @media(max-width:850px){.workspace-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:500px){.workspace-metrics{grid-template-columns:1fr 1fr}.workspace-metric{padding:15px;min-height:140px}.workspace-navigation{margin:25px 0 35px}.workspace-entry-form{display:block}.workspace-entry-form label{display:block;margin:12px 0 6px}.workspace-entry-form input,.workspace-entry-form select{width:100%}.workspace-entry-form button{margin-top:16px}.workspace-entry-form h3{margin-bottom:22px}}
+
+.workspace-entry-form textarea{padding:13px;font:inherit;border:1px solid var(--line);background:white;color:var(--ink);grid-column:1/-1;width:100%;resize:vertical}
+.workspace-mini-button{border:1px solid var(--forest);padding:7px 12px;border-radius:3px;background:white;color:var(--forest);cursor:pointer;font:inherit;font-size:12px;white-space:nowrap}
+.workspace-mini-button:hover{background:var(--cream)}
