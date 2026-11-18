@@ -40,6 +40,7 @@ export function parseCsv(source:string,maxRows=2000):string[][] {
   if(quoted)throw new Error('Unterminated CSV quotation');
   fields.push(current);
   if(fields.some(f=>f.trim()!==''))records.push(fields);
+  if(records.length>maxRows+1)throw new Error('CSV exceeds '+maxRows+' rows');
   return records;
 }
 
