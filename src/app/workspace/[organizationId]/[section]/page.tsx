@@ -33,6 +33,7 @@ export default async function WorkspaceSectionPage({ params }: {
     .eq('organization_id',organizationId)
     .limit(100);
 
+  const rows = (records ?? []) as unknown as Array<Record<string, unknown>>;
   const canEdit = roles.some(r => ['company_admin','hr_admin','training_admin','sdf'].includes(r));
   const canManageTraining = section === 'training' && canEdit;
   const draftSection = ['reporting','training-events','wsp','atr','tasks'].includes(section);
@@ -54,23 +55,23 @@ export default async function WorkspaceSectionPage({ params }: {
     {canManageDraft && isWorkspaceDraftSection(section) && <WorkspaceDraftForm organizationId={organizationId} section={section} programs={programs} cycles={cycles} events={events}/>}
     
     {error ? <p className="notice" role="alert">This section could not be loaded. Your role may not have access, or the service may be unavailable.</p> :
-      !records?.length ? <p className="notice">No authorised records are available in this section yet.</p> :
+      !rows.length ? <p className="notice">No authorised records are available in this section yet.</p> :
       <div className="workspace-table-scroll"><table className="workspace-table">
         <thead><tr>{config.columns.map(c=><th key={c.key} scope="col">{c.label}</th>)}{section==='training-events' && canEdit && <th scope="col">Action</th>}</tr></thead>
-        <tbody>{records.map((record,index)=><tr key={index}>{config.columns.map(c=>
+        <tbody>{rows.map((record,index)=><tr key={index}>{config.columns.map(c=>
           <td key={c.key}>{readable((record as unknown as Record<string,unknown>)[c.key])}</td>
         )}{section==='training-events' && canEdit && <td>{(record as unknown as {status?:string;id?:string}).status==='draft' && typeof (record as unknown as {id?:string}).id==='string' ?
           <form action={completeTrainingEvent.bind(null,organizationId,String((record as unknown as {id?:string}).id))}>
             <button type="submit" className="workspace-mini-button">Mark completed</button>
           </form> : '—'}</td>}</tr>)}</tbody>
       </table></div>}
-    {section==='reporting' && records && <div className="workspace-review-list">
-      {records.map(r => <ReviewCycleControls key={String((r as {id:string}).id)}
+    {section==='reporting' && rows && <div className="workspace-review-list">
+      {rows.map(r => <ReviewCycleControls key={String(r.id)}
         organizationId={organizationId}
         cycleId={String((r as {id:string}).id)}
-        reportingYear={Number((r as {reporting_year:number}).reporting_year)}
-        status={String((r as {status:string}).status)} roles={roles}/>)}
+        reportingYear={Number(r.reporting_year)}
+        status={String(r.status)} roles={roles}/>)}
     </div>}
-    {records && records.length===100 && <p className="workspace-caption">Showing first 100 records. Pagination will be added before pilot use.</p>}
+    {rows && rows.length===100 && <p className="workspace-caption">Showing first 100 records. Pagination will be added before pilot use.</p>}
   </section>;
 }
