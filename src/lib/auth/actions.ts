@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { isIdentitySignInEnabled } from './flags';
 
-export type SignInState = { error: string };
+type SignInState = { error: string };
 
 export async function signInAction(_previousState: SignInState, formData: FormData): Promise<SignInState> {
   if (!isIdentitySignInEnabled()) {
