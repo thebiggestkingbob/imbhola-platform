@@ -19,6 +19,7 @@ jobs:
       - run: npm run test:ofo
       - run: npm run test:evidence
       - run: npm run test:services-seta
+      - run: npm run test:services-guideline
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run build
