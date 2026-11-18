@@ -49,13 +49,13 @@ def inspect_xlsx(path: str) -> dict:
         if len(parts) > MAX_FILES or sum(p.file_size for p in parts) > MAX_UNCOMPRESSED_TOTAL:
             raise ValueError("Oversized XLSX package")
         names = {p.filename for p in parts}
-        if any(not SAFE_PART.fullmatch(p.filename) for p in parts):
+        if any(p.filename != '[Content_Types].xml' and not SAFE_PART.fullmatch(p.filename) for p in parts):
             raise ValueError("Unsafe XLSX member path")
         if any(p.file_size > MAX_ENTRY for p in parts):
             raise ValueError("Oversized XLSX member")
         if any(name.lower().endswith((".bin", ".vba", ".exe", ".js")) for name in names):
             raise ValueError("Potentially active or embedded workbook content")
-        if any("externalLinks/" in name or name.startswith("xl/connections") for name in names):
+        if any("externallinks/" in name.lower() or name.lower().startswith("xl/connections") for name in names):
             raise ValueError("External workbook connection requires manual review")
         if "xl/workbook.xml" not in names or "xl/_rels/workbook.xml.rels" not in names:
             raise ValueError("Not an Open XML workbook")
