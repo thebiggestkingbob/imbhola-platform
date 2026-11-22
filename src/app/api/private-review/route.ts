@@ -7,6 +7,7 @@ export const maxDuration = 60;
 
 const name = 'imbhola-private-review';
 const port = 3000;
+const retention = 30 * 24 * 60 * 60 * 1000;
 const headers = {'Cache-Control':'private, no-store','X-Robots-Tag':'noindex, nofollow'};
 
 function sendTo(location: string) {
@@ -38,6 +39,13 @@ export async function POST(request: Request) {
 
   try {
     const sandbox = await Sandbox.get({ name, resume:true, signal:AbortSignal.timeout(16_000) });
+    if (sandbox.snapshotExpiration && sandbox.snapshotExpiration < retention) {
+      try {
+        await sandbox.update({snapshotExpiration:retention},{signal:AbortSignal.timeout(5000)});
+      } catch {
+        console.warn('Private review snapshot retention remains unchanged.');
+      }
+    }
     const url = new URL(sandbox.domain(port));
     if (url.protocol !== 'https:' || !/^sb-[a-z0-9]+\.vercel\.run$/.test(url.hostname)) {
       throw new Error('Unexpected review workspace hostname');
