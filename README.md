@@ -50,3 +50,9 @@ The isolated review process uses the same SQLite workflows and synthetic fixture
 Set `IMBHOLA_REVIEW=1`, `IMBHOLA_REVIEW_HOST` to the isolated HTTPS hostname, and `IMBHOLA_REVIEW_PASSWORD` to a random URL-safe string of at least 24 characters. Supply the passcode through the runtime configuration. Run `npm ci`, `npm run seed:local -- --walkthrough`, `npm run build` and `node scripts/review-server.mjs` in that isolated runtime. The test accounts use the same passcode. Review storage is for synthetic records.
 
 The draft branch can also expose `/private-review` on its Vercel preview. Set the sensitive `IMBHOLA_PREVIEW_REVIEW_PASSWORD` for that preview branch to the isolated review passcode. The launcher checks the passcode before resuming the named `imbhola-private-review` sandbox, and uses project OIDC to start its web process when needed. Review data lives in the sandbox SQLite database and is carried forward by its filesystem snapshots. Keep the snapshot retention aligned with the testing window. This route is disabled outside the draft branch's Vercel preview.
+
+## PostgreSQL production foundation
+
+The PostgreSQL migrations in `db/001_foundation.sql` and `db/002_tenant_access.sql` are intended for a fresh staging database and must run under a migration owner. The runtime role can access a company only within a transaction configured with the actor ID and selected company ID. Resolve the actor from a verified identity-provider issuer and subject. Use transaction-local settings when pooling connections. The application login must hold only the limited runtime role privileges, and no database credentials should be available to clients.
+
+These migrations implement the tenant access foundation. Live identity provisioning, the PostgreSQL workspace adapter, evidence scanning, commercial integrations and approval of official outputs are still required before using production records.
