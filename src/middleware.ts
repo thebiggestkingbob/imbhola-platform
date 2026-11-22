@@ -5,4 +5,4 @@ export function middleware(request: NextRequest) {
   response.headers.set('Cache-Control', 'no-store');
   return response;
 }
-export const config = { matcher: ['/workspace/:path*', '/sdf/:path*', '/admin/:path*'] };
+export const config = { matcher: ['/dashboard/:path*', '/workspace/:path*', '/sdf/:path*', '/admin/:path*'] };

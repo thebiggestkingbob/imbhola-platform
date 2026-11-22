@@ -1,1 +1,14 @@
-export default function Page(){return <main className="container section"><div className="eyebrow">PRIVACY INFORMATION</div><h1 className="inner-title">Our privacy documentation is under review.</h1><p className="lead">This development preview does not request employer workforce files or employee records. A complete POPIA-aligned privacy notice, controller/operator disclosures, retention rules and support contact must be approved before live personal information is collected.</p><p className="notice">IMBHOLA V3.0 · Development preview. No official SETA reporting is enabled.</p></main>}
+import Link from 'next/link';
+
+export const metadata = { title: 'Preview privacy information' };
+
+export default function Privacy() {
+  return (
+    <main className="container section">
+      <h1 className="inner-title">Preview privacy information</h1>
+      <p className="lead">This informational preview has no account registration or employee uploads. Please keep workforce files and sensitive information out of preview feedback.</p>
+      <p className="notice">Before collection opens, Imbhola will publish who handles personal information, why it is processed, retention rules and how people can exercise their rights.</p>
+      <Link className="text-link" href="/readiness">View launch readiness</Link>
+    </main>
+  );
+}

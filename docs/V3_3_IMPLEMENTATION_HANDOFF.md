@@ -38,3 +38,18 @@ P1: commercial prices, architecture/hosting, design tokens, billing provider, se
 
 ## Source-package note
 A V3.3 Next.js starter ZIP was prepared separately in the conversation. Integrate it through code review rather than overwriting existing repository files. The ZIP is not evidence of a successful build or deployment.
+
+## Preview foundation
+
+Public routes use the existing Next.js layout in `src/app`. The middleware redirects
+private workspace, dashboard, SDF and admin paths to `/access`. No reporting API,
+identity provider, intake form or database connection is active.
+
+The reviewed source schema is in `db/001_foundation.sql`. Apply it as a migration to
+an isolated pilot database only. The private `imbhola` schema enables row-level
+security on all tables and grants no client access. Tenant-matched constraints
+protect references to reporting periods. Database triggers preserve frozen
+workforce snapshots, approved submissions and append-only audit events.
+
+Before pilot access, add verified identity mapping and MFA, explicit permissions
+for each role, and tests for cross-company access and SDF appointment expiry.
