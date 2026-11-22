@@ -63,7 +63,7 @@ createServer(async (req,res) => {
       return;
     }
     if (req.url === gatePath && req.method === 'POST') {
-      if (req.headers.origin !== origin || req.headers['content-type'] !== 'application/x-www-form-urlencoded') {
+      if (req.headers.origin !== origin || req.headers['content-type']?.split(';',1)[0] !== 'application/x-www-form-urlencoded') {
         res.writeHead(403).end();
         return;
       }
