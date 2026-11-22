@@ -88,9 +88,13 @@ export function seedWalkthrough(db: DatabaseSync, year: number) {
 
 if (process.argv[1]?.endsWith('/seed.ts')) {
   if (process.env.VERCEL || process.env.NODE_ENV === 'production') throw new Error('Local seed only.');
-  const password = randomBytes(18).toString('base64url');
+  const review = process.env.IMBHOLA_REVIEW === '1';
+  const password = review ? process.env.IMBHOLA_REVIEW_PASSWORD : randomBytes(18).toString('base64url');
+  if (!password || (review && (!/^[A-Za-z0-9_-]{24,128}$/.test(password) || process.env.VERCEL_ENV === 'production'))) {
+    throw new Error('Supply a strong passcode for an isolated review.');
+  }
   mkdirSync('.imbhola-local', { recursive: true, mode: 0o700 });
-  const db = openDatabase('.imbhola-local/imbhola.sqlite');
+  const db = openDatabase(review ? '.imbhola-local/review.sqlite' : '.imbhola-local/imbhola.sqlite');
   seed(db, password);
   if (process.argv.includes('--walkthrough')) {
     const year = new Date().getFullYear();
@@ -100,5 +104,5 @@ if (process.argv[1]?.endsWith('/seed.ts')) {
   db.exec('DELETE FROM sessions');
   db.close();
   console.log('Synthetic accounts: owner, hr, training, finance, committee, signatory, sdf, ops and beacon-owner @imbhola.test');
-  console.log('Local password for this seed:', password);
+  if (!review) console.log('Local password for this seed:', password);
 }

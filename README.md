@@ -42,3 +42,9 @@ npm run build
 Local authentication and database actions require the explicit local development command. Hosted builds expose public information only. Hosted contact collection still needs approved privacy ownership, retention and lead handling. Use synthetic text evidence locally. Production identity and MFA, database row-level security, scanned storage, commercial payment integrations and pilot acceptance remain separate release gates.
 
 The internal report uses synthetic rules with an explicit year: ATR for that calendar year and WSP for the following year. Its JSON snapshots support workflow testing. Services SETA Excel/PDF outputs require independently verified templates, rules, OFO sources and reconciliation. External portal submission remains an authorised person's responsibility.
+
+## Private interactive review
+
+The isolated review process uses the same SQLite workflows and synthetic fixtures. Its HTTPS entry gate and sample-account sessions both require the review passcode. Use an isolated runtime with a private persistent disk or a named sandbox snapshot, and restrict access to testers. The standard Vercel build continues to serve public information only.
+
+Set `IMBHOLA_REVIEW=1`, `IMBHOLA_REVIEW_HOST` to the isolated HTTPS hostname, and `IMBHOLA_REVIEW_PASSWORD` to a random URL-safe string of at least 24 characters. Supply the passcode through the runtime configuration. Run `npm ci`, `npm run seed:local -- --walkthrough`, `npm run build` and `node scripts/review-server.mjs` in that isolated runtime. The test accounts use the same passcode. Review storage is for synthetic records.

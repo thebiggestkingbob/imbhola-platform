@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import Link from 'next/link';
 import LocalForm from './LocalForm';
+import { reviewWorkspaceEnabled } from '@/local/mode';
 
 export function Input({ name, label, value, type = 'text', optional = false }: {
   name: string; label: string; value?: string; type?: string; optional?: boolean;
@@ -33,7 +34,7 @@ export function WorkspaceShell({ title, subtitle, children }: { title: string; s
       <Link className="text-link" href="/dashboard">Workspaces</Link>
       <LocalForm fields={{task:'logout'}} label="Sign out"/>
     </div>
-    <p className="eyebrow">IMBHOLA LOCAL WORKSPACE</p>
+    <p className="eyebrow">{reviewWorkspaceEnabled() ? 'IMBHOLA PRIVATE REVIEW' : 'IMBHOLA LOCAL WORKSPACE'}</p>
     <h1>{title}</h1>
     <p className="lead">{subtitle}</p>
     {children}

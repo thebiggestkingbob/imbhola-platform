@@ -1,7 +1,7 @@
 import { mkdirSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
-import { localWorkspaceEnabled } from './mode.ts';
+import { localWorkspaceEnabled, reviewWorkspaceEnabled } from './mode.ts';
 
 export function openDatabase(path: string) {
   const db = new DatabaseSync(path);
@@ -16,7 +16,7 @@ export function localDb() {
   if (!localWorkspaceEnabled()) throw new Error('Local workspace is disabled.');
   if (!database) {
     mkdirSync('.imbhola-local', { recursive: true, mode: 0o700 });
-    database = openDatabase('.imbhola-local/imbhola.sqlite');
+    database = openDatabase(reviewWorkspaceEnabled() ? '.imbhola-local/review.sqlite' : '.imbhola-local/imbhola.sqlite');
   }
   return database;
 }

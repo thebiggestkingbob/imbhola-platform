@@ -5,7 +5,7 @@ import { requireRole, roleFor, sessionActor, signIn, type Actor, type Kind } fro
 import { openDatabase } from './db.ts';
 import { acceptInvitation, captureLead, createCompany, createSupportRequest, register, resolveSupportRequest,
   saveCommercial, setMembership, updateCompany, verifyAccount } from './operations.ts';
-import { localWorkspaceEnabled } from './mode.ts';
+import { localWorkspaceEnabled, reviewWorkspaceEnabled } from './mode.ts';
 import { readRecords, saveRecord, workforceImport } from './records.ts';
 import { addEvidence, changeReport, evidenceMetadata, frozenReport, reportDraft } from './reporting.ts';
 import { seed, seedWalkthrough } from './seed.ts';
@@ -173,4 +173,12 @@ test('workspace development authentication stays disabled in hosted and producti
   assert.equal(localWorkspaceEnabled(),false);
   delete process.env.VERCEL;
   assert.equal(localWorkspaceEnabled(),true);
+  Reflect.set(process.env,'NODE_ENV','production');
+  process.env.IMBHOLA_REVIEW = '1';
+  assert.equal(reviewWorkspaceEnabled(),true);
+  process.env.VERCEL = '1';
+  assert.equal(localWorkspaceEnabled(),false);
+  delete process.env.VERCEL;
+  process.env.VERCEL_ENV = 'production';
+  assert.equal(localWorkspaceEnabled(),false);
 });

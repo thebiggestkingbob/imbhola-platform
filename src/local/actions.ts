@@ -5,7 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { cookieName, digest, signIn } from './auth';
 import { localDb } from './db';
-import { localWorkspaceEnabled } from './mode';
+import { localWorkspaceEnabled, reviewWorkspaceEnabled } from './mode';
 import { acceptInvitation, captureLead, createCompany, createSupportRequest, register, requireOperations, resolveSupportRequest, saveCommercial, setMembership, updateCompany, verifyAccount } from './operations';
 import { isRecordKind, saveRecord, workforceImport, type Data } from './records';
 import { addEvidence, changeReport } from './reporting';
@@ -37,7 +37,7 @@ export async function workspaceAction(_: FormResult, form: FormData): Promise<Fo
     if (task === 'login') {
       const token = signIn(db,field('email'),field('password'));
       if (!token) return { error: 'Sign-in failed. Check your local credentials and account verification.' };
-      (await cookies()).set(cookieName,token,{httpOnly:true,sameSite:'strict',maxAge:8 * 3600,path:'/'});
+      (await cookies()).set(cookieName,token,{httpOnly:true,secure:reviewWorkspaceEnabled(),sameSite:'strict',maxAge:8 * 3600,path:'/'});
       destination = '/dashboard';
     } else if (task === 'logout') {
       const jar = await cookies();
