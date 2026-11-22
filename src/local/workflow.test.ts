@@ -10,6 +10,8 @@ import { readRecords, saveRecord, workforceImport } from './records.ts';
 import { addEvidence, changeReport, evidenceMetadata, frozenReport, reportDraft } from './reporting.ts';
 import { seed, seedWalkthrough } from './seed.ts';
 
+import { reviewLauncherPassword, reviewPasscodeMatches } from './review-launcher.ts';
+
 const password = 'synthetic-password-for-tests';
 const actor = (id: string, kind: Kind = 'employer'): Actor => ({id,name:id,email:id + '@imbhola.test',kind});
 const owner = actor('owner');
@@ -181,4 +183,21 @@ test('workspace development authentication stays disabled in hosted and producti
   delete process.env.VERCEL;
   process.env.VERCEL_ENV = 'production';
   assert.equal(localWorkspaceEnabled(),false);
+});
+
+test('review launcher is restricted to the draft branch preview and checks its passcode', t => {
+  const previous = { ...process.env };
+  t.after(() => { process.env = previous; });
+  const passcode = 'synthetic-review-000000000000';
+  process.env.IMBHOLA_PREVIEW_REVIEW_PASSWORD = passcode;
+  process.env.VERCEL_GIT_COMMIT_REF = 'feature/v3-3-platform-foundation';
+  process.env.VERCEL_ENV = 'production';
+  assert.equal(reviewLauncherPassword(),undefined);
+  process.env.VERCEL_ENV = 'preview';
+  process.env.VERCEL_GIT_COMMIT_REF = 'main';
+  assert.equal(reviewLauncherPassword(),undefined);
+  process.env.VERCEL_GIT_COMMIT_REF = 'feature/v3-3-platform-foundation';
+  assert.equal(reviewLauncherPassword(),passcode);
+  assert.equal(reviewPasscodeMatches(passcode,passcode),true);
+  assert.equal(reviewPasscodeMatches('incorrect',passcode),false);
 });
