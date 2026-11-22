@@ -31,6 +31,11 @@
     "next": {
       "postcss": "8.5.33",
       "sharp": "0.35.5"
+    },
+    "@vercel/oidc": {
+      "@vercel/cli-config": {
+        "zod": "4.6.7"
+      }
     }
   }
 }
