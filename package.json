@@ -10,17 +10,20 @@
     "lint": "eslint .",
     "dev:local": "IMBHOLA_LOCAL=1 next dev --hostname 127.0.0.1",
     "seed:local": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/local/seed.ts",
-    "test": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test src/local/*.test.ts"
+    "test": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test src/local/*.test.ts src/production/*.test.ts"
   },
   "dependencies": {
     "@vercel/sandbox": "4.1.0",
+    "jose": "6.2.18",
     "next": "15.5.29",
+    "pg": "8.23.1",
     "react": "19.1.0",
     "react-dom": "19.1.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.0",
     "@types/node": "^22",
+    "@types/pg": "8.23.1",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9.0",
