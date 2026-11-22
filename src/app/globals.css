@@ -5,3 +5,35 @@
   line-height: 1.2;
   margin-bottom: 16px;
 }
+
+.workspace { padding-top: 36px; padding-bottom: 80px; }
+.workspace h1 { font-size: clamp(38px, 6vw, 76px); margin-bottom: 20px; }
+.workspace h2 { font-size: clamp(25px, 3vw, 38px); margin-bottom: 20px; }
+.workspace-top,.workspace-nav,.form-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.workspace-top { justify-content: space-between; margin-bottom: 38px; }
+.workspace-nav { padding: 14px 0; border-block: 1px solid var(--line); }
+.workspace-nav a { padding: 8px 10px; font-weight: 700; font-size: 14px; }
+.workspace-nav a[aria-current="page"] { color: var(--white); background: var(--forest); border-radius: 4px; }
+.workspace-panel { margin: 24px 0; padding: clamp(16px, 3vw, 32px); border: 1px solid var(--line); }
+.workspace-form { display: grid; align-items: start; gap: 14px; max-width: 540px; margin: 14px 0; }
+.workspace-form label { display: grid; gap: 6px; line-height: 1.35; font-size: 14px; font-weight: 700; }
+.workspace-form input,.workspace-form select,.workspace-form textarea { padding: 10px; width: 100%; border: 1px solid #85938b; border-radius: 4px; background: var(--white); color: var(--ink); font: inherit; font-weight: 400; }
+.workspace-form .check-field { display: flex; align-items: flex-start; }
+.workspace-form .check-field input { width: auto; }
+.workspace-form textarea { min-height: 130px; }
+.workspace-form button { border: 0; cursor: pointer; }
+.workspace-form button:disabled { opacity: .65; }
+.workspace-form [aria-live]:empty { display: none; }
+.form-error { color: #92361f; }
+.table-scroll { overflow-x: auto; }
+.workspace-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
+.workspace-table th,.workspace-table td { border-bottom: 1px solid var(--line); padding: 11px; vertical-align: top; overflow-wrap: anywhere; }
+.workspace-table th { background: var(--cream); }
+.workspace-table a,.workspace-panel a { text-decoration: underline; }
+.workspace-panel details { margin: 12px 0; }
+.workspace-panel summary { cursor: pointer; font-weight: 700; }
+.workspace-metrics { display: grid; grid-template-columns: repeat(auto-fit,minmax(150px,1fr)); gap: 12px; margin: 20px 0; }
+.workspace-metrics div { background: var(--cream); padding: 18px; }
+.workspace-metrics dt { font-size: 14px; }
+.workspace-metrics dd { margin: 10px 0 0; font-weight: 700; font-size: 25px; }
+.workspace-panel summary + p { margin: 12px 0 20px; line-height: 1.55; }

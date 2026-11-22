@@ -3,9 +3,9 @@ import Link from 'next/link';
 export const metadata = { title: 'Launch readiness' };
 
 const stages = [
-  ['Public website', 'Informational preview', 'Explore the planned platform and service options.'],
+  ['Public website', 'Informational preview', 'Explore the reporting journey and service options.'],
   ['Secure accounts', 'Pending verification', 'The pilot requires verified identity, MFA and organisation permissions.'],
-  ['Workforce and training', 'Pilot pending', 'Workforce imports and employee records are unavailable in this preview.'],
+  ['Workforce and training', 'Pilot pending', 'Synthetic workforce, training, evidence and internal reporting workflows are available for local testing.'],
   ['Services SETA reporting', 'Pending validation', 'Official templates and reporting-year rules must be confirmed before exports can be enabled.'],
   ['Managed reporting', 'Planned', 'Service agreements, consultant appointments and service levels are pending.'],
 ];

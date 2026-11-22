@@ -1,0 +1,154 @@
+import { strict as assert } from 'node:assert';
+import { test } from 'node:test';
+import type { DatabaseSync } from 'node:sqlite';
+import { requireRole, roleFor, sessionActor, signIn, type Actor, type Kind } from './auth.ts';
+import { openDatabase } from './db.ts';
+import { acceptInvitation, captureLead, createCompany, createSupportRequest, register, resolveSupportRequest,
+  saveCommercial, setMembership, updateCompany, verifyAccount } from './operations.ts';
+import { localWorkspaceEnabled } from './mode.ts';
+import { readRecords, saveRecord, workforceImport } from './records.ts';
+import { addEvidence, changeReport, evidenceMetadata, reportDraft } from './reporting.ts';
+import { seed } from './seed.ts';
+
+const password = 'synthetic-password-for-tests';
+const actor = (id: string, kind: Kind = 'employer'): Actor => ({id,name:id,email:id + '@imbhola.test',kind});
+const owner = actor('owner');
+const sdf = actor('sdf','sdf');
+const ops = actor('ops','operations');
+function fixture(run: (db: DatabaseSync) => void) {
+  const db = openDatabase(':memory:');
+  try { seed(db,password); run(db); } finally { db.close(); }
+}
+
+test('synthetic accounts authenticate with expiring hashed sessions and tenant-scoped access', () => fixture(db => {
+  assert.equal(signIn(db,owner.email,'incorrect'),undefined);
+  const token = signIn(db,owner.email,password);
+  assert.ok(token);
+  assert.equal(sessionActor(db,token)?.id,owner.id);
+  assert.notEqual(db.prepare('SELECT token FROM sessions').get()?.token,token);
+  assert.throws(() => requireRole(db,owner,'beacon'),/access/);
+  assert.equal(roleFor(db,sdf,'beacon'),undefined);
+  assert.equal(roleFor(db,sdf,'atlas'),'sdf');
+  db.prepare("UPDATE membership SET expires='2000-01-01' WHERE role='sdf'").run();
+  assert.equal(roleFor(db,sdf,'atlas'),undefined);
+  db.prepare("UPDATE sessions SET expires='2000-01-01'").run();
+  assert.equal(sessionActor(db,token),undefined);
+}));
+
+test('onboarding, subsidiary profile, invitation and SDF appointment', () => fixture(db => {
+  register(db,'Synthetic Team Member','new-hire@imbhola.test',password);
+  assert.equal(signIn(db,'new-hire@imbhola.test',password),undefined);
+  const id = String(db.prepare("SELECT id FROM users WHERE email='new-hire@imbhola.test'").get()?.id);
+  assert.throws(() => verifyAccount(db,owner,id),/Operations/);
+  verifyAccount(db,ops,id);
+  const hire = sessionActor(db,signIn(db,'new-hire@imbhola.test',password));
+  assert.ok(hire);
+  const tenant = createCompany(db,owner,'Synthetic subsidiary');
+  updateCompany(db,owner,tenant,'DEMO-SUB','Services SETA','atlas');
+  assert.throws(() => updateCompany(db,owner,'atlas','DEMO-ATLAS','Services SETA',tenant),/ancestor/);
+  setMembership(db,owner,tenant,hire.email,'hr','');
+  assert.equal(roleFor(db,hire,tenant),undefined);
+  assert.throws(() => acceptInvitation(db,actor('hr'),tenant),/unavailable/);
+  acceptInvitation(db,hire,tenant);
+  assert.equal(roleFor(db,hire,tenant),'hr');
+  assert.throws(() => setMembership(db,owner,tenant,sdf.email,'sdf','2000-01-01'),/future/);
+  setMembership(db,owner,tenant,sdf.email,'sdf','2099-01-01');
+  assert.equal(roleFor(db,sdf,tenant),'sdf');
+  setMembership(db,owner,tenant,sdf.email,'revoke','');
+  assert.equal(roleFor(db,sdf,tenant),undefined);
+}));
+
+test('workforce CSV preview validates quoting and duplicates and commits atomically', () => fixture(db => {
+  const headers = 'number,name,job,department,active\r\n';
+  const row = 'AT-002,"Example, Person","Workshop ""Lead""",Operations,yes';
+  const preview = workforceImport(db,owner,'atlas',headers + row);
+  assert.equal(preview.entries[0].job,'Workshop "Lead"');
+  assert.equal(readRecords(db,'atlas','employee').length,1);
+  const rejected = workforceImport(db,owner,'atlas',headers + row + '\r\n' + row,true);
+  assert.match(rejected.errors[0],/Row 3.*Duplicate/);
+  assert.equal(readRecords(db,'atlas','employee').length,1);
+  assert.equal(workforceImport(db,owner,'atlas',headers + row,true).committed,true);
+  assert.equal(readRecords(db,'atlas','employee').length,2);
+  assert.equal(workforceImport(db,owner,'atlas',headers + row,true).committed,false);
+  assert.throws(() => workforceImport(db,owner,'beacon',headers + row,true),/access/);
+  assert.equal(db.prepare("SELECT COUNT(*) AS n FROM audit WHERE action='workforce.imported'").get()?.n,1);
+  assert.throws(() => db.prepare('DELETE FROM audit').run(),/append-only/);
+}));
+
+test('training, evidence, WSP and ATR flow to a frozen reviewed and signed report and external outcomes', () => fixture(db => {
+  assert.throws(() => saveRecord(db,sdf,'atlas','mapping',{
+    employee:'demo-001',catalogue:'synthetic-v1/900001',reason:'',override:'yes',
+  }),/reason/);
+  assert.throws(() => saveRecord(db,sdf,'atlas','mapping',{
+    employee:'demo-002',catalogue:'synthetic-v1/900001',reason:'',override:'no',
+  }),/company/);
+  saveRecord(db,sdf,'atlas','mapping',{employee:'demo-001',catalogue:'synthetic-v1/900001',reason:'Demo rationale',override:'yes'});
+  const gap = saveRecord(db,sdf,'atlas','gap',{employee:'demo-001',skill:'Workshop safety',priority:'high'});
+  const plan = saveRecord(db,sdf,'atlas','plan',{
+    employee:'demo-001',gap,course:'Workshop safety',date:'2027-04-20',cost:'1500.10',qualification:'Synthetic qualification',
+  });
+  const training = saveRecord(db,sdf,'atlas','training',{
+    employee:'demo-001',course:'Intro to workshop safety',date:'2026-04-20',cost:'825.15',provider:'Synthetic provider',
+    attendance:'attended',outcome:'completed',
+  });
+  assert.throws(() => addEvidence(db,owner,'atlas',training,'attendance','bad.html','text/html',Buffer.from('<b>hi</b>')),/text fixture/);
+  const file = addEvidence(db,owner,'atlas',training,'attendance','fixture.txt','text/plain',Buffer.from('Synthetic attendance'));
+  assert.equal(evidenceMetadata(db,'atlas')[0].id,file);
+  assert.deepEqual(evidenceMetadata(db,'beacon'),[]);
+  assert.throws(() => changeReport(db,sdf,'atlas',2026,'review'),/blockers/);
+  saveRecord(db,actor('committee'),'atlas','consultation',{
+    date:'2026-11-15',year:'2026',attendees:'Synthetic committee',decision:'Ready to review',
+  });
+  assert.equal(reportDraft(db,'atlas',2026).wsp[0].id,plan);
+  assert.deepEqual(reportDraft(db,'atlas',2026).totals,{plannedCents:150010,actualCents:82515,levyCents:0});
+  const version = changeReport(db,owner,'atlas',2026,'review');
+  assert.throws(() => changeReport(db,owner,'atlas',2026,'approved',version),/separate reviewer/);
+  changeReport(db,actor('committee'),'atlas',2026,'returned',version,'Correct the planned budget');
+  const revised = changeReport(db,sdf,'atlas',2026,'review');
+  assert.equal(revised,version + 1);
+  const snapshot = db.prepare('SELECT snapshot FROM reports WHERE version=?').get(revised)?.snapshot;
+  changeReport(db,actor('committee'),'atlas',2026,'approved',revised);
+  assert.throws(() => changeReport(db,actor('committee'),'atlas',2026,'signed',revised),/access/);
+  changeReport(db,actor('signatory'),'atlas',2026,'signed',revised);
+  assert.throws(() => db.prepare("UPDATE reports SET snapshot='{}' WHERE version=?").run(revised),/immutable/);
+  saveRecord(db,owner,'atlas','employee',{number:'AT-001',name:'Updated Sample',job:'Workshop Coordinator',department:'Operations',active:'yes'},'demo-001');
+  assert.equal(db.prepare('SELECT snapshot FROM reports WHERE version=?').get(revised)?.snapshot,snapshot);
+  const receipt = {report:'2026/' + revised,date:'2027-03-20',reference:'SYNTH-RECEIPT',event:'receipt'};
+  assert.throws(() => saveRecord(db,owner,'atlas','submission',{...receipt,event:'grant',amount:'120'}),/receipt before/);
+  saveRecord(db,owner,'atlas','submission',receipt);
+  saveRecord(db,owner,'atlas','submission',{...receipt,event:'grant',amount:'120'});
+  assert.equal(readRecords(db,'atlas','submission').length,2);
+  assert.equal(reportDraft(db,'atlas',2026).ruleVersion,'local-synthetic-v1');
+}));
+
+test('commercial entitlement, consented capture and support resolution are persisted', () => fixture(db => {
+  const beacon = actor('beacon-owner');
+  const employee = {number:'BE-002',name:'Test employee',job:'Role',department:'Test',active:'yes'};
+  assert.throws(() => saveRecord(db,beacon,'beacon','employee',employee),/active subscription/);
+  assert.throws(() => saveCommercial(db,owner,'beacon','subscription','Plan','100','active','test',''),/Operations/);
+  saveCommercial(db,ops,'beacon','invoice','Invoice','100','paid','test','');
+  assert.throws(() => saveRecord(db,beacon,'beacon','employee',employee),/active subscription/);
+  saveCommercial(db,ops,'beacon','managed contract','Managed service','100','active','test','');
+  assert.ok(saveRecord(db,beacon,'beacon','employee',employee));
+  assert.throws(() => captureLead(db,'Demo','name@imbhola.test','Company','demo',false),/consent/);
+  captureLead(db,'Demo','name@imbhola.test','Company','demo',true);
+  assert.equal(db.prepare('SELECT consent_version FROM leads').get()?.consent_version,'local-notice-v1');
+  createSupportRequest(db,beacon,'beacon','Demo help','Need help with synthetic OFO data');
+  const id = String(db.prepare('SELECT id FROM support').get()?.id);
+  assert.throws(() => resolveSupportRequest(db,beacon,id),/Operations/);
+  resolveSupportRequest(db,ops,id);
+  assert.equal(db.prepare('SELECT status FROM support').get()?.status,'resolved');
+}));
+
+test('workspace development authentication stays disabled in hosted and production environments', t => {
+  const previous = { ...process.env };
+  t.after(() => { process.env = previous; });
+  Reflect.set(process.env,'NODE_ENV','production');
+  process.env.IMBHOLA_LOCAL = '1';
+  assert.equal(localWorkspaceEnabled(),false);
+  Reflect.set(process.env,'NODE_ENV','development');
+  process.env.VERCEL = '1';
+  assert.equal(localWorkspaceEnabled(),false);
+  delete process.env.VERCEL;
+  assert.equal(localWorkspaceEnabled(),true);
+});

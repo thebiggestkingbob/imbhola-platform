@@ -1,30 +1,34 @@
-# IMBHOLA — Skills Development Platform
+# IMBHOLA
 
-**Status: development foundation only.** The repository contains a public-site starter and a Codex execution plan, not a live reporting service.
+[MASTER_BRIEF.md](MASTER_BRIEF.md) defines the product scope. The public website is available for preview. The employer, SDF and operations workspaces run locally against SQLite with synthetic data.
 
-IMBHOLA aims to help South African employers, SDFs and employees manage workforce records, training, evidence, reporting preparation and approvals.
+## Start the local workspace
 
-## Run locally
-```bash
-npm install
-npm run dev
+Use Node.js 24. From the repository root run:
+
+```sh
+npm ci
+npm run seed:local
+npm run dev:local
 ```
-Open http://localhost:3000.
+
+Open http://127.0.0.1:3000/login. The seed command prints the temporary password for the synthetic `@imbhola.test` accounts. Running the seed again rotates their shared temporary password and ends existing sessions. Local records persist in the ignored `.imbhola-local/` directory.
+
+Use `owner@imbhola.test` for the Atlas workspace, `sdf@imbhola.test` for appointed clients, and `ops@imbhola.test` for tenant and commercial operations. The separate `committee@imbhola.test` and `signatory@imbhola.test` accounts can review and sign Atlas reports. Beacon is a separate test company. Activate a subscription or managed contract from operations before adding Beacon or newly onboarded company records.
+
+Run `npm run dev` instead of `npm run dev:local` to exercise the public-only mode.
 
 ## Checks
-```bash
+
+```sh
 npm run typecheck
 npm run lint
+npm test
 npm run build
 ```
 
-## Build plan
-See [Codex master prompt](docs/MASTER_PROMPT_FOR_CODEX.md), [product scope](docs/01_PRODUCT_SCOPE.md), [roles and access](docs/03_ACCESS_AND_WORKFLOWS.md), and [delivery gates](docs/06_RELEASE_AND_TESTS.md).
+## Release boundaries
 
-**Direction 04 — Editorial Enterprise** is approved conceptually; final color/font tokens need signoff. Login, company signup and dashboards remain placeholders until real verified authentication and organization authorization are implemented.
+Local authentication and database actions require the explicit local development command. Hosted builds expose public information only. Hosted contact collection still needs approved privacy ownership, retention and lead handling. Use synthetic text evidence locally. Production identity and MFA, database row-level security, scanned storage, commercial payment integrations and pilot acceptance remain separate release gates.
 
-## Regulatory and privacy notice
-The first SETA is **undecided**. No official SETA exports, validated regulatory deadlines, grant guarantees, or portal submissions should be enabled without independently verified source templates and rules. No real employee records or sensitive client documents in this public repository.
-
-## Deployment
-Vercel: Next.js framework, root directory `./`, build `npm run build`. Preview before production. Do not add secrets to the repository or enable production data features without a security review.
+The internal report uses synthetic rules with an explicit year: ATR for that calendar year and WSP for the following year. Its JSON snapshots support workflow testing. Services SETA Excel/PDF outputs require independently verified templates, rules, OFO sources and reconciliation. External portal submission remains an authorised person's responsibility.
