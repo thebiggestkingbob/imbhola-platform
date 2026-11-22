@@ -2,13 +2,14 @@ import { createRemoteJWKSet } from 'jose';
 import { Pool } from 'pg';
 import { productionWorkspaceConfig } from '@/production/config';
 import { verifyWorkspaceIdentity } from '@/production/identity';
+import { createDescopeWorkspaceVerifier } from '@/production/descope';
 import { readWorkforcePage } from '@/production/workforce';
 
 export const runtime = 'nodejs';
 const cache = {'Cache-Control':'private, no-store','Vary':'Authorization'};
 const idPattern = /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i;
 
-let connection: {pool:Pool;keys:ReturnType<typeof createRemoteJWKSet>} | undefined;
+let connection: {pool:Pool;verify:ReturnType<typeof createDescopeWorkspaceVerifier>} | undefined;
 
 export async function GET(request: Request, {params}: {params:Promise<{companyId:string}>}) {
   const config = productionWorkspaceConfig();
@@ -20,11 +21,18 @@ export async function GET(request: Request, {params}: {params:Promise<{companyId
     return Response.json({error:'Invalid company or page selection.'},{status:400,headers:cache});
   }
 
-  connection ??= {
-    pool:new Pool({connectionString:config.database,ssl:{rejectUnauthorized:true},max:4,connectionTimeoutMillis:5000}),
-    keys:createRemoteJWKSet(config.jwks,{timeoutDuration:4000}),
-  };
-  const identity = await verifyWorkspaceIdentity(request.headers.get('Authorization'),connection.keys,config);
+  if (!connection) {
+    const oidcVerifier = () => {
+      if (config.mode !== 'oidc') throw new Error('OIDC settings unavailable');
+      const keys = createRemoteJWKSet(config.jwks,{timeoutDuration:4000});
+      return (authorization: string | null) => verifyWorkspaceIdentity(authorization,keys,config);
+    };
+    connection = {
+      pool:new Pool({connectionString:config.database,ssl:{rejectUnauthorized:true},max:4,connectionTimeoutMillis:5000}),
+      verify:config.mode === 'descope' ? createDescopeWorkspaceVerifier(config.projectId) : oidcVerifier(),
+    };
+  }
+  const identity = await connection.verify(request.headers.get('Authorization'));
   if (!identity) return Response.json({error:'Verified sign-in with MFA is required.'},{status:401,headers:cache});
 
   try {

@@ -2,13 +2,17 @@ import { jwtVerify, type JWTVerifyGetKey } from 'jose';
 
 export type VerifiedIdentity = { issuer: string; subject: string };
 
+export function workspaceBearerToken(authorization: string | null) {
+  if (!authorization || authorization.length > 8_300) return;
+  return /^Bearer ([\w.-]+)$/i.exec(authorization)?.[1];
+}
+
 export async function verifyWorkspaceIdentity(
   authorization: string | null,
   keys: JWTVerifyGetKey,
   config: {issuer:string;audience:string},
 ): Promise<VerifiedIdentity | undefined> {
-  if (!authorization || authorization.length > 8_300) return;
-  const token = /^Bearer ([\w.-]+)$/i.exec(authorization)?.[1];
+  const token = workspaceBearerToken(authorization);
   if (!token) return;
   try {
     const {payload} = await jwtVerify(token,keys,{

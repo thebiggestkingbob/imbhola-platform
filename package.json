@@ -13,6 +13,7 @@
     "test": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test src/local/*.test.ts src/production/*.test.ts"
   },
   "dependencies": {
+    "@descope/node-sdk": "2.22.0",
     "@vercel/sandbox": "4.1.0",
     "jose": "6.2.18",
     "next": "15.5.29",

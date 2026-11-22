@@ -49,3 +49,32 @@ test('only fresh MFA access tokens signed by the configured provider can identif
   assert.equal(await authenticate({tokenType:'JWT'}),undefined);
   assert.equal(await verifyWorkspaceIdentity('Bearer sample.review.credential',keys,config),undefined);
 });
+
+test('Descope mode requires explicit selection and a project identifier', () => {
+  const config = {
+    VERCEL_ENV:'production',IMBHOLA_ENABLE_PRODUCTION_WORKSPACE:'1',
+    IMBHOLA_DATABASE_URL:'postgres://runtime:synthetic-password@db.example.test/imbhola',
+    IMBHOLA_IDENTITY_MODE:'descope',
+  };
+  assert.equal(productionWorkspaceConfig(config),undefined);
+  assert.equal(productionWorkspaceConfig({...config,NEXT_PUBLIC_DESCOPE_PROJECT_ID:'PsyntheticProject'})?.mode,'descope');
+  assert.equal(productionWorkspaceConfig({...config,IMBHOLA_IDENTITY_MODE:'other',NEXT_PUBLIC_DESCOPE_PROJECT_ID:'PsyntheticProject'}),undefined);
+});
+
+test('Descope identities require a verified, recent MFA session for the selected project', async () => {
+  const {createDescopeWorkspaceVerifier} = await import('./descope.ts');
+  const now = Math.floor(Date.now() / 1000);
+  const base = {sub:'synthetic-user',amr:['pwd','mfa'],iat:now};
+  const project = 'PsyntheticProject';
+  const valid = createDescopeWorkspaceVerifier(project,async () => ({token:base}));
+  assert.deepEqual(await valid('Bearer synthetic.token'),{issuer:'descope:' + project,subject:'synthetic-user'});
+  assert.equal(await valid(null),undefined);
+  const noMfa = createDescopeWorkspaceVerifier(project,async () => ({token:{...base,amr:['pwd']}}));
+  assert.equal(await noMfa('Bearer synthetic.token'),undefined);
+  const old = createDescopeWorkspaceVerifier(project,async () => ({token:{...base,iat:now-601}}));
+  assert.equal(await old('Bearer synthetic.token'),undefined);
+  const bound = createDescopeWorkspaceVerifier(project,async () => ({token:{...base,cnf:{jkt:'fixture'}}}));
+  assert.equal(await bound('Bearer synthetic.token'),undefined);
+  const rejected = createDescopeWorkspaceVerifier(project,async () => { throw new Error('Other project'); });
+  assert.equal(await rejected('Bearer synthetic.token'),undefined);
+});
