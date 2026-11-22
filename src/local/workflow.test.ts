@@ -7,8 +7,8 @@ import { acceptInvitation, captureLead, createCompany, createSupportRequest, reg
   saveCommercial, setMembership, updateCompany, verifyAccount } from './operations.ts';
 import { localWorkspaceEnabled } from './mode.ts';
 import { readRecords, saveRecord, workforceImport } from './records.ts';
-import { addEvidence, changeReport, evidenceMetadata, reportDraft } from './reporting.ts';
-import { seed } from './seed.ts';
+import { addEvidence, changeReport, evidenceMetadata, frozenReport, reportDraft } from './reporting.ts';
+import { seed, seedWalkthrough } from './seed.ts';
 
 const password = 'synthetic-password-for-tests';
 const actor = (id: string, kind: Kind = 'employer'): Actor => ({id,name:id,email:id + '@imbhola.test',kind});
@@ -138,6 +138,28 @@ test('commercial entitlement, consented capture and support resolution are persi
   assert.throws(() => resolveSupportRequest(db,beacon,id),/Operations/);
   resolveSupportRequest(db,ops,id);
   assert.equal(db.prepare('SELECT status FROM support').get()?.status,'resolved');
+}));
+
+test('walkthrough provides a real frozen report that reviewers can approve and sign locally', () => fixture(db => {
+  seedWalkthrough(db,2026);
+  seedWalkthrough(db,2026);
+  const tenant = 'walkthrough';
+  const initial = frozenReport(db,actor('committee'),tenant,'2026','1');
+  assert.ok(initial);
+  assert.equal(initial.status,'review');
+  assert.equal(initial.preparedName,'Appointed SDF');
+  assert.equal(initial.report.wsp[0].data.course,'Supervisor safety refresher');
+  assert.equal(initial.report.atr[0].data.course,'Workshop safety induction');
+  assert.equal(frozenReport(db,actor('beacon-owner'),tenant,'2026','1'),undefined);
+  assert.equal(frozenReport(db,ops,tenant,'2026','1'),undefined);
+  assert.equal(frozenReport(db,actor('hr'),tenant,'2026','1'),undefined);
+  assert.equal(db.prepare('SELECT COUNT(*) AS total FROM reports WHERE tenant=?').get(tenant)?.total,1);
+  changeReport(db,actor('committee'),tenant,2026,'approved',1);
+  changeReport(db,actor('signatory'),tenant,2026,'signed',1);
+  const signed = frozenReport(db,owner,tenant,'2026','1');
+  assert.equal(signed?.status,'signed');
+  assert.equal(signed?.signedName,'Employer signatory');
+  assert.equal(signed?.digest,initial.digest);
 }));
 
 test('workspace development authentication stays disabled in hosted and production environments', t => {

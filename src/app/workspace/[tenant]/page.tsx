@@ -6,7 +6,7 @@ import { Input, Select, Table, WorkspaceShell, rand } from '@/components/LocalUI
 import { roleFor, type Role } from '@/local/auth';
 import { localDb } from '@/local/db';
 import { canView, isRecordKind, readRecords, sections, type Data, type RecordKind } from '@/local/records';
-import { evidenceMetadata, reportDraft } from '@/local/reporting';
+import { evidenceMetadata, reportDraft, reportRoles } from '@/local/reporting';
 import { requireActor } from '@/local/session';
 
 type Choice = readonly [string,string];
@@ -120,7 +120,10 @@ function ReportPanel({ db, tenant, role, year, actorId }: { db: DatabaseSync; te
       const signatory = row.status === 'approved' && row.approved_by !== actorId && row.submitted_by !== actorId &&
         ['signatory','owner'].includes(role);
       return [String(row.version),String(row.status),
-        <Link key="snapshot" href={'/report-snapshot/' + tenant + '/' + row.year + '/' + row.version}>Download internal JSON snapshot</Link>,
+        <div key="snapshot" className="report-version-links">
+          <Link href={'/report-review/' + tenant + '/' + row.year + '/' + row.version}>Read frozen report</Link>
+          <Link href={'/report-snapshot/' + tenant + '/' + row.year + '/' + row.version}>Download JSON</Link>
+        </div>,
         <div key="actions">
           {reviewer && <>
             <LocalForm fields={{...base,transition:'approved'}} label="Approve version"/>
@@ -136,6 +139,25 @@ function ReportPanel({ db, tenant, role, year, actorId }: { db: DatabaseSync; te
   </section>;
 }
 
+function ReportingProgress({ db, tenant, year, role }: { db: DatabaseSync; tenant: string; year: number; role: Role }) {
+  const draft = reportDraft(db,tenant,year);
+  const latest = db.prepare('SELECT version,status FROM reports WHERE tenant=? AND year=? ORDER BY version DESC LIMIT 1')
+    .get(tenant,year);
+  const latestRef = latest ? year + '/' + latest.version : '';
+  const externalReceipt = readRecords(db,tenant,'submission').some(entry => entry.data.report === latestRef && entry.data.event === 'receipt');
+  const next = latest?.status === 'review' ? 'Open version awaiting committee review'
+    : latest?.status === 'approved' ? 'Open version awaiting sign-off'
+    : latest?.status === 'signed' ? (externalReceipt ? 'Review filing outcome' : 'Record external receipt')
+    : draft.blockers.length ? 'View reporting blockers'
+    : ['owner','sdf'].includes(role) ? 'Request committee review' : 'Open reporting';
+  const target = latest?.status === 'signed' && (sections.submission.roles as readonly Role[]).includes(role) ? 'submission' : 'reports';
+  return <div className="report-progress">
+    <h3>Reporting cycle {year}</h3>
+    <p>{latest ? 'Version ' + latest.version + ' · ' + latest.status : 'Working draft'} · {draft.blockers.length} working draft blockers · {draft.warnings.length} warnings</p>
+    <Link href={'?tab=' + target + '&year=' + year}>{target === 'submission' || latest?.status !== 'signed' ? next : 'Open signed report'}</Link>
+  </div>;
+}
+
 export default async function CompanyWorkspace({ params, searchParams }: {
   params: Promise<{tenant:string}>; searchParams: Promise<{tab?:string;year?:string}>;
 }) {
@@ -147,7 +169,7 @@ export default async function CompanyWorkspace({ params, searchParams }: {
   if (!role || !company) notFound();
   const {tab = 'overview',year: rawYear} = await searchParams;
   const year = rawYear && /^20\d\d$/.test(rawYear) && rawYear !== '2099' ? Number(rawYear) : new Date().getFullYear();
-  const reports = ['owner','sdf','committee','signatory'].includes(role);
+  const reports = (reportRoles as readonly Role[]).includes(role);
   const evidence = ['owner','sdf','training','committee','signatory','finance'].includes(role);
   const links: [string,string][] = [['overview','Overview']];
   for (const kind of Object.keys(sections)) {
@@ -159,14 +181,16 @@ export default async function CompanyWorkspace({ params, searchParams }: {
   if (role === 'owner') links.push(['access','Company and access']);
   if (!links.some(([key]) => key === tab)) notFound();
 
+  const reportYear = '&year=' + year;
   const parents = db.prepare(`SELECT t.id,t.name FROM tenants t JOIN membership m ON m.tenant=t.id
     WHERE m.user_id=? AND m.role='owner' AND t.id<>? ORDER BY t.name`).all(actor.id,tenant);
   return <WorkspaceShell title={String(company.name)} subtitle={'Company workspace · ' + role + ' access'}>
     <nav className="workspace-nav" aria-label="Company modules">
-      {links.map(([key,label]) => <Link key={key} href={'?tab=' + key} aria-current={tab === key ? 'page' : undefined}>{label}</Link>)}
+      {links.map(([key,label]) => <Link key={key} href={'?tab=' + key + reportYear} aria-current={tab === key ? 'page' : undefined}>{label}</Link>)}
     </nav>
     {tab === 'overview' && <section className="workspace-panel">
       <h2>Company dashboard</h2>
+      {reports && <ReportingProgress db={db} tenant={tenant} year={year} role={role}/>}
       <dl className="workspace-metrics">
         {(['employee','mapping','gap','plan','training'] as const).map(kind => <div key={kind}>
           <dt>{sections[kind].label}</dt><dd>{readRecords(db,tenant,kind).length}</dd>

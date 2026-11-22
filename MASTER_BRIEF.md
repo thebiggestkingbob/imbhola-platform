@@ -37,7 +37,9 @@ Company-scoped records and row-level database security; real authentication/MFA 
 An authorised employer and SDF can complete this journey with real persistent data, verified Services SETA output, tracked external submission, working commercial entitlements, passing tenant/security/workflow tests and pilot sign-off. Prototype pages, draft SQL and a successful build do not count as complete.
 
 ## Current status
-Public starter and prototype screens exist; database schema is drafted but not deployed. Verified authentication, workforce import, WSP/ATR, evidence, approval, exports, billing, complete tests and production deployment are still outstanding. Official Services SETA templates, pilot employers, privacy/legal ownership and commercial terms remain dependencies.
+Vercel serves the public website. The employer, SDF and Imbhola operations workspaces run locally on SQLite with synthetic accounts and records. Local workflows include company onboarding, workforce imports, OFO mapping, WSP/ATR preparation, text evidence, committee review, sign-off, filing status and commercial records. The Cedar Workshop walkthrough exercises the same local reporting workflow using sample data.
+
+The platform remains in development. The pilot requires production authentication and MFA, database row-level security, malware-scanned evidence, live lead ownership and privacy procedures, payments, and independent verification of Services SETA templates, reporting rules and catalogue sources. Official exports remain disabled. Pilot employers and acceptance are still required.
 
 ## Delivery rules
 One master brief, one backlog, one repository, tested vertical slices. Use PR previews and keep production unchanged until release gates pass. The local unified source package contains this broader consolidated specification and a build-status tracker.

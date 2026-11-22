@@ -37,3 +37,18 @@
 .workspace-metrics dt { font-size: 14px; }
 .workspace-metrics dd { margin: 10px 0 0; font-weight: 700; font-size: 25px; }
 .workspace-panel summary + p { margin: 12px 0 20px; line-height: 1.55; }
+.report-version-links { display: grid; gap: 10px; }
+.report-progress { background: var(--cream); padding: 16px; margin-bottom: 18px; }
+.report-digest { overflow-wrap: anywhere; }
+@media print {
+  body:has(.report-review) .site-header,
+  body:has(.report-review) .footer,
+  .report-review .workspace-top { display: none; }
+  .report-review { padding: 0; }
+  .report-review .workspace-panel { margin: 12px 0; padding: 12px; }
+  .report-review .table-scroll { overflow: visible; }
+  .report-review .workspace-table { font-size: 10px; }
+  .report-review .workspace-table th,
+  .report-review .workspace-table td { padding: 5px; }
+  .report-review tr { break-inside: avoid; }
+}

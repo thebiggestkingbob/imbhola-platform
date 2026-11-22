@@ -120,3 +120,29 @@ export function changeReport(db: DatabaseSync, actor: Actor, tenant: string, yea
     return version;
   });
 }
+
+export const reportRoles = ['owner','sdf','committee','signatory'] as const;
+
+export function frozenReport(db: DatabaseSync, actor: Actor, tenant: string, year: string, version: string) {
+  try {
+    requireRole(db,actor,tenant,reportRoles);
+  } catch {
+    return;
+  }
+  const row = db.prepare(`SELECT r.snapshot,r.digest,r.status,r.signed_by,r.signed_at,
+    preparer.name AS prepared_name, reviewer.name AS approved_name, signer.name AS signed_name
+    FROM reports r JOIN users preparer ON r.submitted_by=preparer.id
+    LEFT JOIN users reviewer ON r.approved_by=reviewer.id LEFT JOIN users signer ON r.signed_by=signer.id
+    WHERE r.tenant=? AND r.year=? AND r.version=?`).get(tenant,year,version);
+  if (!row || digest(String(row.snapshot)) !== row.digest) return;
+  return {
+    report: JSON.parse(String(row.snapshot)) as ReturnType<typeof reportDraft>,
+    digest: String(row.digest),
+    status: String(row.status),
+    preparedName: String(row.prepared_name),
+    approvedName: row.approved_name ? String(row.approved_name) : null,
+    signedName: row.signed_name ? String(row.signed_name) : null,
+    signedBy: row.signed_by,
+    signedAt: row.signed_at,
+  };
+}

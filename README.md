@@ -18,6 +18,16 @@ Use `owner@imbhola.test` for the Atlas workspace, `sdf@imbhola.test` for appoint
 
 Run `npm run dev` instead of `npm run dev:local` to exercise the public-only mode.
 
+## Walk through a reporting cycle
+
+Run `npm run seed:local -- --walkthrough` to add Cedar Workshop with a populated workforce, OFO mapping, skills gap, WSP, ATR, payroll, consultation and a frozen sample report awaiting review. The sample uses the current year. Running the command again preserves work already recorded for Cedar.
+
+1. Sign in as `committee@imbhola.test`, open Cedar Workshop and choose **Reporting and approvals**. Open **Read frozen report** before approving version 1.
+2. Sign in as `signatory@imbhola.test` to sign that approved version. Open the same report to read it or save an internal PDF via the browser's print dialog.
+3. Sign in as `sdf@imbhola.test` to see Cedar on the client list. Open **External receipts and grants** to test recording a synthetic receipt and later outcome.
+
+The printable report is an internal synthetic report. It uses the exact saved version and shows its review history and SHA-256 digest.
+
 ## Checks
 
 ```sh
