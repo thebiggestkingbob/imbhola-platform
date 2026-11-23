@@ -1,5 +1,6 @@
 import { Sandbox } from '@vercel/sandbox';
 import { setTimeout } from 'node:timers/promises';
+import { hasReviewInvitation } from '@/local/review-gate';
 import { reviewLauncherPassword, reviewPasscodeMatches, reviewSandboxName } from '@/local/review-launcher';
 
 export const runtime = 'nodejs';
@@ -7,7 +8,7 @@ export const maxDuration = 60;
 
 const port = 3000;
 const retention = 30 * 24 * 60 * 60 * 1000;
-const headers = {'Cache-Control':'private, no-store','X-Robots-Tag':'noindex, nofollow'};
+const headers = {'Cache-Control':'private, no-store','X-Robots-Tag':'noindex, nofollow','Referrer-Policy':'no-referrer'};
 
 function sendTo(location: string) {
   return new Response(null,{status:303,headers:{...headers,Location:location}});
@@ -37,6 +38,19 @@ export async function POST(request: Request) {
   const provided = new URLSearchParams(body).get('passcode') ?? '';
   if (!reviewPasscodeMatches(provided,password)) return sendTo('/private-review?status=invalid');
 
+  return launchReview(name,password);
+}
+
+export async function GET(request: Request) {
+  const password = reviewLauncherPassword();
+  const name = reviewSandboxName();
+  const ticket = new URL(request.url).searchParams.get('ticket');
+  if (!password || !name || name !== 'imbhola-redesign-review') return new Response(null,{status:404,headers});
+  if (!ticket || !hasReviewInvitation(ticket,password)) return sendTo('/private-review?status=invalid');
+  return launchReview(name,password,ticket);
+}
+
+async function launchReview(name: string, password: string, ticket?: string) {
   try {
     const sandbox = await Sandbox.get({ name, resume:true, signal:AbortSignal.timeout(16_000) });
     if (sandbox.snapshotExpiration && sandbox.snapshotExpiration < retention) {
@@ -50,6 +64,7 @@ export async function POST(request: Request) {
     if (url.protocol !== 'https:' || !/^sb-[a-z0-9]+\.vercel\.run$/.test(url.hostname)) {
       throw new Error('Unexpected review workspace hostname');
     }
+    const destination = ticket ? new URL('/review-invitation?ticket='+encodeURIComponent(ticket),url).href : url.href;
     if (!(await ready(url))) {
       const args = ['-n','/tmp/imbhola-review.lock','node','scripts/review-server.mjs'];
       await sandbox.runCommand({
@@ -61,11 +76,11 @@ export async function POST(request: Request) {
       });
       for (let i = 0; i < 10; i++) {
         await setTimeout(1000);
-        if (await ready(url)) return sendTo(url.href);
+        if (await ready(url)) return sendTo(destination);
       }
       throw new Error('Workspace did not become ready');
     }
-    return sendTo(url.href);
+    return sendTo(destination);
   } catch (error) {
     // Avoid exposing provider credentials or response contents in logs.
     console.error('Private review launcher:',error instanceof Error ? error.name : 'Unspecified error');

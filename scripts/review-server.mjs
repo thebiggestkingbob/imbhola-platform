@@ -1,7 +1,7 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import { createServer } from 'node:http';
 import next from 'next';
-import { hasReviewCookie, reviewCookieName, reviewCookieToken } from '../src/local/review-gate.ts';
+import { hasReviewCookie, hasReviewInvitation, reviewCookieName, reviewCookieToken } from '../src/local/review-gate.ts';
 
 const password = process.env.IMBHOLA_REVIEW_PASSWORD;
 const host = process.env.IMBHOLA_REVIEW_HOST;
@@ -52,6 +52,14 @@ function gate(res, issue = '') {
   ${issue ? '<p class="error" role="alert">The passcode was incorrect.</p>' : ''}<button>Open private review</button></form></main></body></html>`);
 }
 
+function openReview(res, sameSite = 'Strict') {
+  const expiry = String(Math.floor(Date.now() / 1000) + validFor);
+  res.writeHead(303,{
+    'Location':'/login','Referrer-Policy':'no-referrer',
+    'Set-Cookie':cookieName+'='+reviewCookieToken(password,expiry)+'; Secure; HttpOnly; SameSite='+sameSite+'; Path=/; Max-Age='+validFor,
+  }).end();
+}
+
 createServer(async (req,res) => {
   try {
     res.setHeader('Cache-Control','private, no-store');
@@ -59,6 +67,12 @@ createServer(async (req,res) => {
     const incomingHost = req.headers['x-forwarded-host'] || req.headers.host;
     if (incomingHost !== host) {
       res.writeHead(421).end();
+      return;
+    }
+    if (req.method === 'GET' && req.url?.startsWith('/review-invitation?')) {
+      const ticket = new URL(req.url,origin).searchParams.get('ticket');
+      if (hasReviewInvitation(ticket,password)) openReview(res,'Lax');
+      else gate(res,'invalid');
       return;
     }
     if (req.url === gatePath && req.method === 'POST') {
@@ -79,11 +93,7 @@ createServer(async (req,res) => {
         gate(res,'invalid');
         return;
       }
-      const expiry = String(Math.floor(Date.now() / 1000) + validFor);
-      res.writeHead(303,{
-        'Location':'/login',
-        'Set-Cookie':cookieName+'='+reviewCookieToken(password,expiry)+'; Secure; HttpOnly; SameSite=Strict; Path=/; Max-Age='+validFor,
-      }).end();
+      openReview(res);
       return;
     }
     if (!hasPass(req.headers)) {
