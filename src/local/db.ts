@@ -1,3 +1,5 @@
+import { demoRuntimeEnabled } from '../demo/config.ts';
+import { demoScope } from '../demo/scope.ts';
 import { mkdirSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
@@ -14,6 +16,11 @@ let database: DatabaseSync | undefined;
 
 export function localDb() {
   if (!localWorkspaceEnabled()) throw new Error('Local workspace is disabled.');
+  if (demoRuntimeEnabled()) {
+    const scoped = demoScope.getStore();
+    if (!scoped) throw new Error('Open a sample workspace first.');
+    return scoped;
+  }
   if (!database) {
     mkdirSync('.imbhola-local', { recursive: true, mode: 0o700 });
     database = openDatabase(reviewWorkspaceEnabled() ? '.imbhola-local/review.sqlite' : '.imbhola-local/imbhola.sqlite');

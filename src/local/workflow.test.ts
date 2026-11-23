@@ -5,6 +5,7 @@ import { requireRole, roleFor, sessionActor, signIn, type Actor, type Kind } fro
 import { openDatabase } from './db.ts';
 import { acceptInvitation, captureLead, createCompany, createSupportRequest, recordReportingSource, register, resolveSupportRequest,
   saveCommercial, setMembership, updateCompany, verifyAccount } from './operations.ts';
+import { demoRuntimeEnabled, productionDemoEnabled } from '../demo/config.ts';
 import { localWorkspaceEnabled, reviewWorkspaceEnabled } from './mode.ts';
 import { readRecords, saveRecord, workforceImport } from './records.ts';
 import { addEvidence, changeReport, evidenceMetadata, frozenReport, readEvidence, reportDraft } from './reporting.ts';
@@ -222,6 +223,27 @@ test('workspace development authentication stays disabled in hosted and producti
   delete process.env.VERCEL;
   process.env.VERCEL_ENV = 'production';
   assert.equal(localWorkspaceEnabled(),false);
+});
+
+test('the production sample entry requires its own isolated runtime and proxy configuration', t => {
+  const previous = { ...process.env };
+  t.after(() => { process.env = previous; });
+  process.env.IMBHOLA_DEMO_RUNTIME = '1';
+  process.env.VERCEL = '1';
+  process.env.VERCEL_ENV = 'production';
+  assert.equal(localWorkspaceEnabled(),false);
+  assert.equal(productionDemoEnabled(),false);
+  process.env.IMBHOLA_DEMO_PROXY_SECRET = 'f'.repeat(64);
+  process.env.IMBHOLA_DEMO_SANDBOX_URL = 'https://sb-test.vercel.run';
+  assert.equal(productionDemoEnabled(),true);
+  assert.equal(demoRuntimeEnabled(),false);
+  process.env.VERCEL_ENV = 'preview';
+  assert.equal(productionDemoEnabled(),false);
+  assert.equal(demoRuntimeEnabled(),false);
+  delete process.env.VERCEL_ENV;
+  delete process.env.VERCEL;
+  assert.equal(demoRuntimeEnabled(),true);
+  assert.equal(productionDemoEnabled(),false);
 });
 
 test('review launcher is restricted to the draft branch preview and checks its passcode', t => {

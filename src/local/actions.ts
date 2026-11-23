@@ -1,9 +1,10 @@
 'use server';
 
+import { demoPath, demoRuntimeEnabled, demoSessionCookie } from '@/demo/config';
 import { cookies } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
-import { cookieName, digest, signIn } from './auth';
+import { cookieName, digest, issueSession, signIn } from './auth';
 import { localDb } from './db';
 import { localWorkspaceEnabled, reviewWorkspaceEnabled } from './mode';
 import { acceptInvitation, captureLead, createCompany, createSupportRequest, recordReportingSource, register, requireOperations, resolveSupportRequest, saveCommercial, setMembership, updateCompany, verifyAccount } from './operations';
@@ -23,6 +24,9 @@ export async function workspaceAction(_: FormResult, form: FormData): Promise<Fo
   if (!localWorkspaceEnabled()) return { error: 'This action is unavailable in the public preview.' };
   const field = (key: string) => String(form.get(key) ?? '');
   const task = field('task');
+  const demo = demoRuntimeEnabled();
+  const roleCookie = demo ? demoSessionCookie : cookieName;
+  const cookiePath = demo ? demoPath : '/';
   const db = localDb();
   let destination: string | undefined;
   let result: FormResult = { message: 'Saved.' };
@@ -32,10 +36,12 @@ export async function workspaceAction(_: FormResult, form: FormData): Promise<Fo
       return { message: 'Synthetic request recorded for review.' };
     }
     if (task === 'register') {
+      if (demo) return {error:'Choose a sample role to use this workspace.'};
       register(db,field('name'),field('email'),field('password'),field('kind'));
       return { message: 'Request recorded. An Imbhola operator must verify the synthetic account.' };
     }
-    if (task === 'login' || task === 'reviewLogin') {
+    if (task === 'demoLogin' || task === 'login' || task === 'reviewLogin') {
+      if (demo !== (task === 'demoLogin')) return {error:'Use the sign-in form for this workspace.'};
       const jar = await cookies();
       let email = field('email');
       let password = field('password');
@@ -49,17 +55,19 @@ export async function workspaceAction(_: FormResult, form: FormData): Promise<Fo
         email = account + '@imbhola.test';
         password = reviewPassword;
       }
-      const token = signIn(db,email,password);
+      const account = field('account');
+      const token = demo ? (reviewAccounts.some(([id]) => id === account) ? issueSession(db,account) : undefined) : signIn(db,email,password);
       if (!token) return { error: 'Sign-in failed. Check your local credentials and account verification.' };
-      const previous = jar.get(cookieName)?.value;
+      const previous = jar.get(roleCookie)?.value;
       if (previous) db.prepare('DELETE FROM sessions WHERE token=?').run(digest(previous));
-      jar.set(cookieName,token,{httpOnly:true,secure:reviewWorkspaceEnabled(),sameSite:'strict',maxAge:8 * 3600,path:'/'});
+      jar.set(roleCookie,token,{httpOnly:true,secure:demo || reviewWorkspaceEnabled(),sameSite:'strict',maxAge:8 * 3600,path:cookiePath});
       destination = '/dashboard';
     } else if (task === 'logout') {
       const jar = await cookies();
-      const token = jar.get(cookieName)?.value;
+      const token = jar.get(roleCookie)?.value;
       if (token) db.prepare('DELETE FROM sessions WHERE token=?').run(digest(token));
-      jar.delete(cookieName);
+      if (demo) jar.set(roleCookie,'',{path:cookiePath,secure:true,httpOnly:true,maxAge:0});
+      else jar.delete(roleCookie);
       destination = '/login';
     } else {
       const actor = await currentActor();

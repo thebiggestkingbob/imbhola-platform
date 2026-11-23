@@ -22,9 +22,13 @@ export function signIn(db: DatabaseSync, email: string, password: string) {
   const stored = user?.password ?? '00000000000000000000000000000000:' + '00'.repeat(64);
   const computed = hashPassword(password, stored.slice(0, 32));
   if (!user || !timingSafeEqual(Buffer.from(computed), Buffer.from(stored))) return;
+  return issueSession(db,user.id);
+}
+
+export function issueSession(db: DatabaseSync, userId: string) {
   const token = randomBytes(32).toString('hex');
   db.prepare('INSERT INTO sessions VALUES(?,?,?)')
-    .run(digest(token), user.id, new Date(Date.now() + 8 * 60 * 60_000).toISOString());
+    .run(digest(token), userId, new Date(Date.now() + 8 * 60 * 60_000).toISOString());
   return token;
 }
 

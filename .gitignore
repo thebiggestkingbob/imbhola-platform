@@ -8,3 +8,5 @@ out/
 *.tsbuildinfo
 .DS_Store
 .imbhola-local/
+
+.next-demo/

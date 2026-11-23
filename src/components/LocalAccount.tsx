@@ -1,20 +1,24 @@
+import { demoHost, demoRuntimeEnabled } from '@/demo/config';
 import Link from 'next/link';
 import { reviewWorkspaceEnabled } from '@/local/mode';
 import { reviewAccounts } from '@/local/review-gate';
+import Brand from './Brand';
 import LocalForm from './LocalForm';
 import { Input, Select } from './LocalUI';
 
 export default function LocalAccount({ register = false }: { register?: boolean }) {
+  const demo = demoRuntimeEnabled();
   const review = reviewWorkspaceEnabled();
-  const title = review ? 'Sign in to the review workspace.' : 'Sign in to the local workspace.';
+  const title = demo ? 'Choose your workspace role.' : review ? 'Sign in to the review workspace.' : 'Sign in to the local workspace.';
   return <main className="container section account-layout"><div>
-    <p className="eyebrow">{review ? 'PRIVATE REVIEW' : 'LOCAL DEVELOPMENT'}</p>
+    {demo && <Brand/>}
+    <p className="eyebrow">{demo ? 'SAMPLE WORKSPACE' : review ? 'PRIVATE REVIEW' : 'LOCAL DEVELOPMENT'}</p>
     <h1 className="inner-title">{register ? 'Request a synthetic account.' : title}</h1>
-    <p className="lead">Use sample accounts and company information during this review.</p></div><div className="account-card">
-    {review && !register && <LocalForm fields={{task:'reviewLogin'}} label="Open workspace">
+    <p className="lead">{demo ? 'Explore IMBHOLA with sample data. Your changes stay in this browser’s workspace for 24 hours. Use fictional people, companies and documents.' : 'Use sample accounts and company information during this review.'}</p></div><div className="account-card">
+    {(demo || review) && !register && <LocalForm fields={{task:demo ? 'demoLogin' : 'reviewLogin'}} label="Open workspace">
       <Select name="account" label="Choose a test role" choices={reviewAccounts}/>
     </LocalForm>}
-    {review && !register && <details>
+    {(demo || review) && !register && <details>
       <summary>Test accounts and walkthrough</summary>
       <p>Choose any role to use its sample account. Sign out to switch roles.</p>
       <ol>
@@ -24,10 +28,10 @@ export default function LocalAccount({ register = false }: { register?: boolean 
         <li>Use <strong>ops@imbhola.test</strong> to review enquiries, companies, subscriptions, contracts and invoices.</li>
       </ol>
     </details>}
-    {review && !register && <details><summary>Sign in with another account</summary>
+    {review && !demo && !register && <details><summary>Sign in with another account</summary>
       <LocalForm fields={{task:'login'}} label="Sign in"><Input name="email" label="Email" type="email"/><Input name="password" label="Password" type="password"/></LocalForm>
     </details>}
-    {(!review || register) && <LocalForm fields={{task:register ? 'register' : 'login'}} label={register ? 'Request account' : 'Sign in'}>
+    {!demo && (!review || register) && <LocalForm fields={{task:register ? 'register' : 'login'}} label={register ? 'Request account' : 'Sign in'}>
       {register && <>
         <Input name="name" label="Synthetic name"/>
         <Select name="kind" label="Account type" choices={[[ 'employer','Employer team member'],['sdf','SDF']]}/>
@@ -35,6 +39,6 @@ export default function LocalAccount({ register = false }: { register?: boolean 
       <Input name="email" label="Email" type="email"/>
       <Input name="password" label="Password" type="password"/>
     </LocalForm>}
-    <Link className="text-link" href={register ? '/login' : '/signup'}>{register ? 'Sign in' : 'Request a synthetic account'}</Link>
+    {demo ? <a className="text-link" href={"https://"+demoHost+"/access"}>Back to workspace access</a> : <Link className="text-link" href={register ? '/login' : '/signup'}>{register ? 'Sign in' : 'Request a synthetic account'}</Link>}
   </div></main>;
 }

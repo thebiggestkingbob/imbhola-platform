@@ -1,3 +1,4 @@
+import { demoRuntimeEnabled } from '@/demo/config';
 import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { BriefcaseBusiness, Building2, FileText, FolderOpen, GraduationCap, LayoutGrid, Menu, Settings, UsersRound } from 'lucide-react';
@@ -68,7 +69,7 @@ export function WorkspaceShell({title,subtitle,children,items = [],active = 'ove
     <main className="workspace workspace-content">
       <header className="workspace-header">
         <div className="workspace-header-top"><div className="workspace-context"><Link href={homeHref}>Workspaces</Link>{context && <span>{context}</span>}</div>
-          <div className="workspace-account">{reviewWorkspaceEnabled() && <span className="status">Demo data</span>}
+          <div className="workspace-account">{(demoRuntimeEnabled() || reviewWorkspaceEnabled()) && <span className="status">Demo data</span>}
             <LocalForm fields={{task:'logout'}} label="Sign out"/></div></div>
         <div className="workspace-heading"><div><h1>{title}</h1>{subtitle && <p className="lead">{subtitle}</p>}</div>{action}</div>
       </header>

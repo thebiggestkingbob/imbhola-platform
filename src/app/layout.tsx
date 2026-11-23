@@ -1,3 +1,4 @@
+import { demoRuntimeEnabled } from '@/demo/config';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import Brand from '@/components/Brand';
@@ -17,6 +18,10 @@ const footerGroups = [
 ];
 
 export default function RootLayout({children}:{children:React.ReactNode}) {
+  if (demoRuntimeEnabled()) return <html lang="en"><body>
+    <a className="skip-link" href="#main-content">Skip to content</a>
+    <div id="main-content" tabIndex={-1}>{children}</div>
+  </body></html>;
   return <html lang="en"><body>
     <a className="skip-link" href="#main-content">Skip to content</a>
     <Header/>

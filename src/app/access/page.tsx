@@ -1,3 +1,4 @@
+import { demoPath, productionDemoEnabled } from '@/demo/config';
 import { localWorkspaceEnabled } from '@/local/mode';
 import Link from 'next/link';
 import { reviewSandboxName } from '@/local/review-launcher';
@@ -6,6 +7,15 @@ import { PublicPage } from '@/components/PublicPage';
 export const metadata = { title: 'Workspace access' };
 
 export default function Access() {
+  if (productionDemoEnabled()) return <PublicPage eyebrow="Workspace access"
+    title="Open the IMBHOLA workspace."
+    description="Choose a sample role and test the employer, SDF and administration workspaces with fictional company records.">
+    <section className="account-card access-card">
+      <h2>Try the platform</h2>
+      <p>Your sample records stay in this browser’s workspace for 24 hours. Use fictional information and documents.</p>
+      <a className="button" href={demoPath+'/login'}>Open workspace</a>
+    </section>
+  </PublicPage>;
   const enabled = localWorkspaceEnabled();
   const preview = Boolean(reviewSandboxName());
   return <PublicPage eyebrow="Workspace access"
