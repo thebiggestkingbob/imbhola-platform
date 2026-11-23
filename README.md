@@ -39,7 +39,7 @@ npm run build
 
 ## Release boundaries
 
-Local authentication and database actions require the explicit local development command. Hosted builds expose public information only. Hosted contact collection still needs approved privacy ownership, retention and lead handling. Use synthetic text evidence locally. Production identity and MFA, database row-level security, scanned storage, commercial payment integrations and pilot acceptance remain separate release gates.
+Local authentication and database actions run in local development or in the isolated review process. The production website exposes public information. Hosted contact collection still needs approved privacy ownership, retention and lead handling. The review vault accepts synthetic PDF, PNG, JPEG and UTF-8 text attachments up to 2 MB. It checks basic file signatures and confirms the stored digest when downloading. Malware scanning is required before accepting real evidence. Production identity and MFA, database row-level security, scanned storage, commercial payment integrations and pilot acceptance remain separate release gates.
 
 The internal report uses synthetic rules with an explicit year: ATR for that calendar year and WSP for the following year. Its JSON snapshots support workflow testing. Services SETA Excel/PDF outputs require independently verified templates, rules, OFO sources and reconciliation. External portal submission remains an authorised person's responsibility.
 

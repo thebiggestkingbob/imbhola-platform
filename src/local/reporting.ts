@@ -11,21 +11,48 @@ export function evidenceMetadata(db: DatabaseSync, tenant: string) {
     }[];
 }
 
+export const evidenceSizeLimit = 2_000_000;
+export const evidenceReaderRoles = ['owner','sdf','training','committee','signatory','finance'] as const;
+
+function evidenceType(filename: string, bytes: Uint8Array) {
+  const extension = /^[a-zA-Z0-9 _.-]{1,100}\.(txt|pdf|png|jpe?g)$/i.exec(filename)?.[1].toLowerCase();
+  if (!extension || !bytes.length || bytes.length > evidenceSizeLimit) return;
+  if (extension === 'txt') {
+    try {
+      if (!/\x00/.test(new TextDecoder('utf-8',{fatal:true}).decode(bytes))) return 'text/plain';
+    } catch {
+      return;
+    }
+  }
+  const data = Buffer.from(bytes.buffer,bytes.byteOffset,bytes.byteLength);
+  if (extension === 'pdf' && /^%PDF-\d\.\d[\r\n]/.test(data.subarray(0,10).toString('ascii')) &&
+    /%%EOF\s*$/.test(data.subarray(-64).toString('ascii'))) return 'application/pdf';
+  if (extension === 'png' && data.subarray(0,8).toString('hex') === '89504e470d0a1a0a') return 'image/png';
+  if ((extension === 'jpg' || extension === 'jpeg') && data.subarray(0,3).toString('hex') === 'ffd8ff' &&
+    data.subarray(-2).toString('hex') === 'ffd9') return 'image/jpeg';
+}
+
+export function readEvidence(db: DatabaseSync, actor: Actor, tenant: string, id: string) {
+  try {
+    requireRole(db,actor,tenant,evidenceReaderRoles);
+  } catch {
+    return;
+  }
+  const row = db.prepare('SELECT filename,bytes,digest FROM evidence WHERE tenant=? AND id=?').get(tenant,id);
+  if (!row || typeof row.filename !== 'string' || !(row.bytes instanceof Uint8Array) ||
+    digest(row.bytes) !== row.digest) return;
+  return {filename:row.filename,bytes:row.bytes};
+}
+
 export function addEvidence(db: DatabaseSync, actor: Actor, tenant: string, trainingId: string, label: string,
-  filename: string, mime: string, bytes: Uint8Array) {
+  filename: string, bytes: Uint8Array) {
   return transaction(db, () => {
     requireRole(db,actor,tenant,['owner','training','sdf']);
     requireEntitlement(db,tenant);
     if (!readRecords(db,tenant,'training').some(item => item.id === trainingId)) throw new Error('Choose training for this company.');
     if (!['attendance','certificate','payment'].includes(label)) throw new Error('Choose an evidence type.');
-    if (!bytes.length || bytes.length > 2_000_000 || mime !== 'text/plain' || !/^[a-zA-Z0-9 _.-]{1,100}\.txt$/.test(filename)) {
-      throw new Error('Upload a synthetic plain-text fixture under 2 MB.');
-    }
-    try {
-      if (/\x00/.test(new TextDecoder('utf-8',{ fatal: true }).decode(bytes))) throw new Error();
-    } catch {
-      throw new Error('Upload a valid UTF-8 text fixture.');
-    }
+    const mime = evidenceType(filename,bytes);
+    if (!mime) throw new Error('Choose a synthetic PDF, PNG, JPEG or UTF-8 text file up to 2 MB.');
     const id = randomUUID();
     db.prepare('INSERT INTO evidence VALUES(?,?,?,?,?,?,?,?,?,?)')
       .run(tenant,id,trainingId,label,filename,mime,bytes,digest(bytes),now(),actor.id);

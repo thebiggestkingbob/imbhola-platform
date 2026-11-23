@@ -8,7 +8,7 @@ import { localDb } from './db';
 import { localWorkspaceEnabled, reviewWorkspaceEnabled } from './mode';
 import { acceptInvitation, captureLead, createCompany, createSupportRequest, register, requireOperations, resolveSupportRequest, saveCommercial, setMembership, updateCompany, verifyAccount } from './operations';
 import { isRecordKind, saveRecord, workforceImport, type Data } from './records';
-import { addEvidence, changeReport } from './reporting';
+import { addEvidence, changeReport, evidenceSizeLimit } from './reporting';
 import { currentActor } from './session';
 
 export type FormResult = {
@@ -88,8 +88,8 @@ export async function workspaceAction(_: FormResult, form: FormData): Promise<Fo
         }
         case 'evidence': {
           const file = form.get('file');
-          if (!(file instanceof File) || !file.size || file.size > 2_000_000) throw new Error('Choose a text fixture under 2 MB.');
-          addEvidence(db,actor,tenant,field('training'),field('label'),file.name,file.type,new Uint8Array(await file.arrayBuffer()));
+          if (!(file instanceof File) || !file.size || file.size > evidenceSizeLimit) throw new Error('Choose a synthetic evidence file up to 2 MB.');
+          addEvidence(db,actor,tenant,field('training'),field('label'),file.name,new Uint8Array(await file.arrayBuffer()));
           break;
         }
         case 'report':

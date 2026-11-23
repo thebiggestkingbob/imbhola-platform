@@ -79,7 +79,7 @@ export function seedWalkthrough(db: DatabaseSync, year: number) {
     const sdf: Actor = {id:'sdf',email:'sdf@imbhola.test',name:'Appointed SDF',kind:'sdf'};
     if (!db.prepare('SELECT 1 FROM evidence WHERE tenant=? AND training_id=? AND label=?')
       .get(walkthroughTenant,training,'attendance')) {
-      addEvidence(db,sdf,walkthroughTenant,training,'attendance','cedar-attendance.txt','text/plain',
+      addEvidence(db,sdf,walkthroughTenant,training,'attendance','cedar-attendance.txt',
         Buffer.from('Synthetic evidence. CE-001 attended the Workshop safety induction on ' + year + '-05-12.'));
     }
     changeReport(db,sdf,walkthroughTenant,year,'review');

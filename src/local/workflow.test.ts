@@ -7,7 +7,7 @@ import { acceptInvitation, captureLead, createCompany, createSupportRequest, reg
   saveCommercial, setMembership, updateCompany, verifyAccount } from './operations.ts';
 import { localWorkspaceEnabled, reviewWorkspaceEnabled } from './mode.ts';
 import { readRecords, saveRecord, workforceImport } from './records.ts';
-import { addEvidence, changeReport, evidenceMetadata, frozenReport, reportDraft } from './reporting.ts';
+import { addEvidence, changeReport, evidenceMetadata, frozenReport, readEvidence, reportDraft } from './reporting.ts';
 import { seed, seedWalkthrough } from './seed.ts';
 
 import { reviewLauncherPassword, reviewPasscodeMatches } from './review-launcher.ts';
@@ -93,10 +93,18 @@ test('training, evidence, WSP and ATR flow to a frozen reviewed and signed repor
     employee:'demo-001',course:'Intro to workshop safety',date:'2026-04-20',cost:'825.15',provider:'Synthetic provider',
     attendance:'attended',outcome:'completed',
   });
-  assert.throws(() => addEvidence(db,owner,'atlas',training,'attendance','bad.html','text/html',Buffer.from('<b>hi</b>')),/text fixture/);
-  const file = addEvidence(db,owner,'atlas',training,'attendance','fixture.txt','text/plain',Buffer.from('Synthetic attendance'));
+  assert.throws(() => addEvidence(db,owner,'atlas',training,'attendance','bad.html',Buffer.from('<b>hi</b>')),/synthetic PDF/);
+  assert.throws(() => addEvidence(db,owner,'atlas',training,'attendance','bad.pdf',Buffer.from('<b>hi</b>')),/synthetic PDF/);
+  const file = addEvidence(db,owner,'atlas',training,'attendance','fixture.txt',Buffer.from('Synthetic attendance'));
   assert.equal(evidenceMetadata(db,'atlas')[0].id,file);
   assert.deepEqual(evidenceMetadata(db,'beacon'),[]);
+  assert.equal(Buffer.from(readEvidence(db,sdf,'atlas',file)!.bytes).toString(),'Synthetic attendance');
+  const sample = Buffer.from('%PDF-1.4\nSynthetic certificate fixture\n%%EOF\n');
+  const certificate = addEvidence(db,sdf,'atlas',training,'certificate','Sample certificate.pdf',sample);
+  assert.deepEqual(Buffer.from(readEvidence(db,owner,'atlas',certificate)!.bytes),sample);
+  assert.equal(readEvidence(db,actor('beacon-owner'),'atlas',certificate),undefined);
+  assert.equal(readEvidence(db,owner,'beacon',certificate),undefined);
+  assert.throws(() => db.prepare('UPDATE evidence SET bytes=? WHERE id=?').run(sample,file),/immutable/);
   assert.throws(() => changeReport(db,sdf,'atlas',2026,'review'),/blockers/);
   saveRecord(db,actor('committee'),'atlas','consultation',{
     date:'2026-11-15',year:'2026',attendees:'Synthetic committee',decision:'Ready to review',

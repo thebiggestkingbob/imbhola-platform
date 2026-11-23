@@ -6,7 +6,7 @@ import { Input, Select, Table, WorkspaceShell, rand } from '@/components/LocalUI
 import { roleFor, type Role } from '@/local/auth';
 import { localDb } from '@/local/db';
 import { canView, isRecordKind, readRecords, sections, type Data, type RecordKind } from '@/local/records';
-import { evidenceMetadata, reportDraft, reportRoles } from '@/local/reporting';
+import { evidenceMetadata, evidenceReaderRoles, reportDraft, reportRoles } from '@/local/reporting';
 import { requireActor } from '@/local/session';
 
 type Choice = readonly [string,string];
@@ -65,16 +65,16 @@ function EvidencePanel({ db, tenant, role }: { db: DatabaseSync; tenant: string;
   const sessions = readRecords(db,tenant,'training').map(({id,data}) => [id,data.course + ' · ' + data.date] as const);
   return <section className="workspace-panel">
     <h2>Evidence vault</h2>
-    <p>Upload synthetic UTF-8 text fixtures. Access is scoped to this company.</p>
+    <p>Attach sample certificates, attendance or payment records. Use synthetic PDF, PNG, JPEG or text files up to 2 MB.</p>
     <Table columns={['Type','Training','File','Date']} rows={evidenceMetadata(db,tenant).map(file => [
       file.label,sessions.find(([id]) => id === file.training_id)?.[1],
       <Link key="file" href={'/evidence/' + tenant + '/' + file.id}>{file.filename}</Link>,file.uploaded_at.slice(0,10),
     ])}/>
     {['owner','training','sdf'].includes(role) && <details><summary>Upload evidence</summary>
-      <LocalForm fields={{task:'evidence',tenant}} label="Upload text fixture">
+      <LocalForm fields={{task:'evidence',tenant}} label="Upload evidence">
         <Select name="training" label="Training record" choices={sessions}/>
         <Select name="label" label="Evidence type" choices={['attendance','certificate','payment'].map(type => [type,type])}/>
-        <label>Synthetic text fixture<input name="file" type="file" accept=".txt,text/plain" required/></label>
+        <label>Sample evidence file<input name="file" type="file" accept=".pdf,.png,.jpg,.jpeg,.txt" required/></label>
       </LocalForm>
     </details>}
   </section>;
@@ -170,7 +170,7 @@ export default async function CompanyWorkspace({ params, searchParams }: {
   const {tab = 'overview',year: rawYear} = await searchParams;
   const year = rawYear && /^20\d\d$/.test(rawYear) && rawYear !== '2099' ? Number(rawYear) : new Date().getFullYear();
   const reports = (reportRoles as readonly Role[]).includes(role);
-  const evidence = ['owner','sdf','training','committee','signatory','finance'].includes(role);
+  const evidence = (evidenceReaderRoles as readonly Role[]).includes(role);
   const links: [string,string][] = [['overview','Overview']];
   for (const kind of Object.keys(sections)) {
     if (isRecordKind(kind) && canView(kind,role)) links.push([kind,sections[kind].label]);

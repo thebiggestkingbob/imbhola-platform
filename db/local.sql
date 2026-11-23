@@ -47,6 +47,10 @@ CREATE TABLE IF NOT EXISTS evidence (
   digest TEXT NOT NULL, uploaded_at TEXT NOT NULL, uploaded_by TEXT NOT NULL REFERENCES users(id),
   PRIMARY KEY(tenant,id)
 ) STRICT;
+CREATE TRIGGER IF NOT EXISTS evidence_no_update BEFORE UPDATE ON evidence
+BEGIN SELECT RAISE(ABORT,'Evidence is immutable'); END;
+CREATE TRIGGER IF NOT EXISTS evidence_no_delete BEFORE DELETE ON evidence
+BEGIN SELECT RAISE(ABORT,'Evidence history cannot be deleted'); END;
 CREATE TABLE IF NOT EXISTS audit (
   id INTEGER PRIMARY KEY, tenant TEXT REFERENCES tenants(id), user_id TEXT REFERENCES users(id),
   action TEXT NOT NULL, subject TEXT NOT NULL, created_at TEXT NOT NULL
