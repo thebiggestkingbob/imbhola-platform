@@ -1,2 +1,44 @@
 import Link from 'next/link';
-export default function Home(){return <main><section className="hero container"><div className="eyebrow">SKILLS DEVELOPMENT · SOUTH AFRICA</div><h1>Your skills levy.<br/><em>Put to work.</em></h1><p className="lead">Bring workforce information, training plans, supporting evidence and reporting preparation into one considered workspace.</p><div className="actions"><Link className="button" href="/platform">Explore Imbhola <span aria-hidden>↗</span></Link><Link className="text-link" href="/how-it-works">See how it works →</Link></div><div className="hero-meta"><span>Purpose-built for employers & SDFs</span><span>Clarity, from plan to evidence</span></div></section><section className="cream-section"><div className="container section"><div className="eyebrow">ONE PLACE. MORE CLARITY.</div><h2>From workforce information<br/>to reporting readiness.</h2><div className="grid"><article className="card"><span className="card-number">01 /</span><h3>Understand your people.</h3><p>Organise company and employee records, occupational information and development needs.</p></article><article className="card"><span className="card-number">02 /</span><h3>Make training accountable.</h3><p>Connect learning activities, participants, owners and supporting evidence.</p></article><article className="card"><span className="card-number">03 /</span><h3>Prepare with confidence.</h3><p>Review your WSP/ATR working information. Official SETA exports require verified templates.</p></article></div></div></section><section className="container section"><div className="eyebrow">BUILT FOR REAL TEAMS</div><h2>One connected platform.<br/>Different responsibilities.</h2><p className="lead">HR teams, employees, managers, executives and skills development facilitators each see the work that matters to them.</p><Link className="text-link" href="/solutions">Explore solutions →</Link></section></main>}
+import { BookOpen, CheckCircle2, ClipboardCheck, FileCheck2, GraduationCap, UsersRound } from 'lucide-react';
+import DashboardPreview from '@/components/DashboardPreview';
+
+const pillars = [
+  {Icon:UsersRound,title:'Understand your workforce',body:'Bring employee records, occupation codes and skills gaps together.'},
+  {Icon:GraduationCap,title:'Manage training',body:'Plan the year ahead, record completed training and attach supporting evidence.'},
+  {Icon:FileCheck2,title:'Prepare for review',body:'Check your WSP and ATR, record approvals and keep a history of each version.'},
+];
+
+export default function Home() {
+  return <main>
+    <section className="container hero">
+      <div className="hero-copy">
+        <p className="eyebrow"><span className="eyebrow-dot"/>Skills development · South Africa</p>
+        <h1>From training plans to <em>reporting day.</em></h1>
+        <p className="lead">Give employers and skills development facilitators one place to plan training, keep evidence organised and prepare reports for review.</p>
+        <div className="actions"><Link className="button" href="/request-demo">Request a demo</Link><Link className="button button-secondary" href="/how-it-works">See how it works</Link></div>
+      </div>
+      <DashboardPreview/>
+    </section>
+    <section className="soft-section">
+      <div className="container section">
+        <p className="eyebrow">The workflow</p><h2>Everything in the right place.</h2>
+        <div className="grid">{pillars.map(({Icon,title,body}) => <article className="card" key={title}>
+          <div className="icon-tile"><Icon size={24} aria-hidden="true"/></div><h3>{title}</h3><p>{body}</p>
+        </article>)}</div>
+      </div>
+    </section>
+    <section className="container section audience-section">
+      <div>
+        <p className="eyebrow">Made for your team</p><h2>Know what’s ready and what needs attention.</h2>
+        <p className="lead">Give HR teams, SDFs and signatories a shared view of each reporting cycle, with access based on their role.</p>
+        <Link className="button button-secondary" href="/solutions">Explore team roles</Link>
+      </div>
+      <div className="audience-list">
+        <p><UsersRound aria-hidden="true"/>Employer and HR teams</p>
+        <p><BookOpen aria-hidden="true"/>Skills development facilitators</p>
+        <p><ClipboardCheck aria-hidden="true"/>Committees and signatories</p>
+        <p><CheckCircle2 aria-hidden="true"/>Imbhola operations</p>
+      </div>
+    </section>
+  </main>;
+}

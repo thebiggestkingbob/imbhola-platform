@@ -93,7 +93,7 @@ function PilotWorkforce({flowId}:{flowId:string}) {
     {error && <p role="alert" className="form-error">{error}</p>}
     {notice && <p role="status">{notice}</p>}
     {busy && <p role="status">Working…</p>}
-    {!token ? <section className="workspace-panel">
+    {!token ? <section className="workspace-panel access-card">
       <h2>Sign in to the private pilot</h2>
       <p>Use your invited account and complete both verification steps.</p>
       <Descope flowId={flowId} onSuccess={event => void signIn(event.detail.sessionJwt)}

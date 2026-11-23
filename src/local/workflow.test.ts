@@ -12,7 +12,7 @@ import { seed, seedWalkthrough } from './seed.ts';
 import { reportWorkbook } from './report-workbook.ts';
 
 import { hasReviewCookie, reviewCookieToken } from './review-gate.ts';
-import { reviewLauncherPassword, reviewPasscodeMatches } from './review-launcher.ts';
+import { reviewLauncherPassword, reviewPasscodeMatches, reviewSandboxName } from './review-launcher.ts';
 
 const password = 'synthetic-password-for-tests';
 const actor = (id: string, kind: Kind = 'employer'): Actor => ({id,name:id,email:id + '@imbhola.test',kind});
@@ -237,6 +237,10 @@ test('review launcher is restricted to the draft branch preview and checks its p
   assert.equal(reviewLauncherPassword(),undefined);
   process.env.VERCEL_GIT_COMMIT_REF = 'feature/v3-3-platform-foundation';
   assert.equal(reviewLauncherPassword(),passcode);
+  assert.equal(reviewSandboxName(),'imbhola-private-review');
+  process.env.VERCEL_GIT_COMMIT_REF = 'feature/imbhola-redesign';
+  assert.equal(reviewLauncherPassword(),passcode);
+  assert.equal(reviewSandboxName(),'imbhola-redesign-review');
   assert.equal(reviewPasscodeMatches(passcode,passcode),true);
   assert.equal(reviewPasscodeMatches('incorrect',passcode),false);
 });

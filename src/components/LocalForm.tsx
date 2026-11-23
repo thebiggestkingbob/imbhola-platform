@@ -11,7 +11,7 @@ export default function LocalForm({ fields, children, label, importForm = false 
   const [previewCsv,setPreviewCsv] = useState('');
   const [fileError,setFileError] = useState('');
   const showImportResult = importForm && previewCsv === csv && !fileError;
-  return <form action={action} className="workspace-form">
+  return <form action={action} className="workspace-form" aria-busy={pending}>
     {Object.entries(fields).map(([key,value]) => <input key={key} name={key} value={value} type="hidden" />)}
     {children}
     {importForm && <>
@@ -41,14 +41,14 @@ export default function LocalForm({ fields, children, label, importForm = false 
       }} required maxLength={250000}/></label>
     </>}
     <div className="form-actions">
-      <button className="button button-small" disabled={pending} name="intent" value="preview" onClick={() => setPreviewCsv(csv)}>{label}</button>
+      <button className="button button-small" disabled={pending} name="intent" value="preview" onClick={() => setPreviewCsv(csv)}>{pending ? 'Working…' : label}</button>
       {showImportResult && !!state.entries?.length && !state.errors?.length && !state.message?.endsWith('imported.') &&
         <button className="button button-small" disabled={pending} name="intent" value="commit">Commit import</button>}
     </div>
     <div aria-live="polite">
       {fileError && <p className="form-error">{fileError}</p>}
       {(!importForm || showImportResult) && state.error && <p className="form-error">{state.error}</p>}
-      {(!importForm || showImportResult) && state.message && <p>{state.message}</p>}
+      {(!importForm || showImportResult) && state.message && <p className="form-status">{state.message}</p>}
       {showImportResult && !!state.errors?.length && <details open><summary>CSV error report ({state.errors.length})</summary>
         <p><a download="workforce-import-errors.txt" href={'data:text/plain;charset=utf-8,' + encodeURIComponent(state.errors.join('\n'))}>Download error report</a></p>
         <ol>{state.errors.map(error => <li key={error}>{error}</li>)}</ol>

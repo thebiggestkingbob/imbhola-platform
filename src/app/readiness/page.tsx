@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { Status } from '@/components/LocalUI';
 
 export const metadata = { title: 'Launch readiness' };
 
@@ -17,7 +18,7 @@ export default function Readiness() {
       <div className="grid">
         {stages.map(([title, status, description]) => (
           <article className="card" key={title}>
-            <span className="card-number">{status}</span>
+            <Status value={status}/>
             <h2 className="card-title">{title}</h2>
             <p>{description}</p>
           </article>

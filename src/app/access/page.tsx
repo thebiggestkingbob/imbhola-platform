@@ -1,15 +1,23 @@
 import { localWorkspaceEnabled } from '@/local/mode';
 import Link from 'next/link';
+import { reviewSandboxName } from '@/local/review-launcher';
+import { PublicPage } from '@/components/PublicPage';
 
 export const metadata = { title: 'Workspace access' };
 
 export default function Access() {
   const enabled = localWorkspaceEnabled();
-  return (
-    <main className="container section">
-      <h1 className="inner-title">{enabled ? 'Open your workspace.' : 'Workspace access is closed.'}</h1>
-      <p className="lead">{enabled ? 'Sign in with a sample employer, SDF or administrator account.' : 'Employer, SDF and administrator accounts will open after verified sign-in and organisation permissions have been tested.'}</p>
-      {enabled ? <Link className="button" href="/dashboard">Open workspace</Link> : <Link className="button" href="/readiness">View launch readiness</Link>}
-    </main>
-  );
+  const preview = Boolean(reviewSandboxName());
+  return <PublicPage eyebrow="Workspace access"
+    title={enabled ? 'Open your workspace.' : preview ? 'Open the private review.' : 'Workspace access will open with the pilot.'}
+    description={enabled ? 'Choose an employer, SDF or administrator account to work with sample records.' :
+      preview ? 'Use the review passcode to explore the public site and workspaces together with sample data.' :
+      'The pilot requires verified sign-in and company permissions before real records can be added.'}>
+    <section className="account-card access-card">
+      <h2>{enabled ? 'Sample workspace' : preview ? 'Private review' : 'Launch readiness'}</h2>
+      <Link className="button" href={enabled ? '/dashboard' : preview ? '/private-review' : '/readiness'}>
+        {enabled ? 'Open workspace' : preview ? 'Enter private review' : 'View launch readiness'}
+      </Link>
+    </section>
+  </PublicPage>;
 }

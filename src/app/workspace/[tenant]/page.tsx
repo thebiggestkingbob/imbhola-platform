@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import type { DatabaseSync } from 'node:sqlite';
 import LocalForm from '@/components/LocalForm';
-import { Input, Select, Table, WorkspaceShell, rand } from '@/components/LocalUI';
+import { Input, Select, Status, Table, WorkspaceShell, rand } from '@/components/LocalUI';
 import { roleFor, type Role } from '@/local/auth';
 import { localDb } from '@/local/db';
 import { canView, isRecordKind, readRecords, sections, type Data, type RecordKind } from '@/local/records';
@@ -29,7 +29,27 @@ function RecordEditor({ tenant, kind, options, id, data = {} }: {
   </LocalForm>;
 }
 
-function RecordsPanel({ db, tenant, kind, role }: { db: DatabaseSync; tenant: string; kind: RecordKind; role: Role }) {
+function RecordFilters({kind,year,query,status}:{kind:RecordKind;year:number;query:string;status:string}) {
+  return <>
+    <form className="filter-bar" method="get">
+      <input type="hidden" name="tab" value={kind}/><input type="hidden" name="year" value={year}/>
+      {status && <input type="hidden" name="status" value={status}/>}
+      <label>Find a record<input name="q" type="search" defaultValue={query} maxLength={100}/></label>
+      <button className="button button-small button-secondary">Search</button>
+      {!!query && <Link className="text-link" href={'?tab='+kind+'&year='+year+(status ? '&status='+status : '')}>Clear search</Link>}
+    </form>
+    {kind === 'employee' && <nav className="filter-chips" aria-label="Employee status">{[['','All employees'],['yes','Active'],['no','Inactive']].map(([value,label]) => {
+      const params = new URLSearchParams({tab:kind,year:String(year)});
+      if (value) params.set('status',value);
+      if (query) params.set('q',query);
+      return <Link key={value} href={'?'+params} aria-current={status === value ? 'page' : undefined}>{label}</Link>;
+    })}</nav>}
+  </>;
+}
+
+function RecordsPanel({ db, tenant, kind, role, query, status, year }: {
+  db:DatabaseSync;tenant:string;kind:RecordKind;role:Role;query:string;status:string;year:number;
+}) {
   const section = sections[kind];
   const writable = (section.roles as readonly Role[]).includes(role);
   const catalogue = db.prepare('SELECT * FROM ofo ORDER BY version,code').all();
@@ -41,18 +61,27 @@ function RecordsPanel({ db, tenant, kind, role }: { db: DatabaseSync; tenant: st
     report: db.prepare("SELECT year,version FROM reports WHERE tenant=? AND status='signed' ORDER BY year DESC,version DESC")
       .all(tenant).map(row => [row.year + '/' + row.version,row.year + ' · Version ' + row.version]),
   };
-  const rows = readRecords(db,tenant,kind);
+  const values = readRecords(db,tenant,kind);
+  const rows = values.filter(({data}) => {
+    if (status && kind === 'employee' && data.active !== status) return false;
+    if (!query) return true;
+    return section.fields.some(([key]) =>
+      (options[key]?.find(([value]) => value === data[key])?.[1] ?? data[key] ?? '').toLowerCase().includes(query.toLowerCase()),
+    );
+  });
   return <section className="workspace-panel">
     <h2>{section.label}</h2>
     {kind === 'mapping' && <p>Available catalogue entries are synthetic. Describe the reason for any override.</p>}
     {kind === 'submission' && <p>Record events after an authorised person completes them externally. Start with the receipt.</p>}
-    <Table columns={[...section.fields.map(field => field[1]),...(writable && kind !== 'submission' ? ['Edit'] : [])]}
+    {values.length > 0 && <RecordFilters kind={kind} year={year} query={query} status={status}/>}
+    <Table empty={values.length ? 'No records match these filters.' : writable ? 'Use Add record to get started.' : 'No records have been added.'} columns={[...section.fields.map(field => field[1]),...(writable && kind !== 'submission' ? ['Edit'] : [])]}
       rows={rows.map(({id,data}) => [
-        ...section.fields.map(([key]) => options[key]?.find(([value]) => value === data[key])?.[1] ?? data[key]),
+        ...section.fields.map(([key]) => key === 'active' ? <Status key="active" value={data.active === 'yes' ? 'Active' : 'Inactive'}/>
+          : options[key]?.find(([value]) => value === data[key])?.[1] ?? data[key]),
         ...(writable && kind !== 'submission' ? [<details key="edit"><summary>Edit record</summary>
           <RecordEditor tenant={tenant} kind={kind} options={options} id={id} data={data}/></details>] : []),
       ])}/>
-    {writable && <details><summary>Add record</summary><RecordEditor tenant={tenant} kind={kind} options={options}/></details>}
+    {writable && <details className="primary-disclosure"><summary>Add record</summary><RecordEditor tenant={tenant} kind={kind} options={options}/></details>}
     {writable && kind === 'employee' && <details><summary>Import workforce CSV</summary>
       <p>Use the column order below. Preview the results before committing. Any invalid row prevents the import.</p>
       <code>number,name,job,department,active</code>
@@ -80,7 +109,7 @@ function EvidencePanel({ db, tenant, role }: { db: DatabaseSync; tenant: string;
   </section>;
 }
 
-function ReportPanel({ db, tenant, role, year, actorId }: { db: DatabaseSync; tenant: string; role: Role; year: number; actorId: string }) {
+function ReportPanel({ db, tenant, role, year, actorId, state }: { db: DatabaseSync; tenant: string; role: Role; year: number; actorId: string; state: string }) {
   const draft = reportDraft(db,tenant,year);
   const versions = db.prepare(`SELECT year,version,status,digest,submitted_by,approved_by,signed_by,signed_at
     FROM reports WHERE tenant=? AND year=? ORDER BY version DESC`).all(tenant,year);
@@ -90,7 +119,7 @@ function ReportPanel({ db, tenant, role, year, actorId }: { db: DatabaseSync; te
     <h2>WSP and ATR reporting</h2>
     <p>ATR actuals for {year} and WSP plans for {year + 1}. Internal rules {draft.ruleVersion}. Official Services SETA exports are disabled.</p>
     <form className="workspace-form" method="get">
-      <input type="hidden" name="tab" value="reports"/>
+      <input type="hidden" name="tab" value="reports"/>{state && <input type="hidden" name="state" value={state}/>}
       <label>ATR reporting year<input type="number" name="year" min="2000" max="2098" defaultValue={year}/></label>
       <div><button className="button button-small">View year</button></div>
     </form>
@@ -101,8 +130,8 @@ function ReportPanel({ db, tenant, role, year, actorId }: { db: DatabaseSync; te
     </dl>
     <h3>Readiness checks</h3>
     <Table columns={['Severity','Check']} rows={[
-      ...draft.blockers.map(item => ['Blocker',item]),
-      ...draft.warnings.map(item => ['Warning',item]),
+      ...draft.blockers.map(item => [<Status key="blocker" value="Blocker"/>,item]),
+      ...draft.warnings.map(item => [<Status key="warning" value="Warning"/>,item]),
       ...(!draft.blockers.length && !draft.warnings.length ? [['Ready','Internal checks passed']] : []),
     ]}/>
     <details><summary>Working report</summary>
@@ -114,22 +143,31 @@ function ReportPanel({ db, tenant, role, year, actorId }: { db: DatabaseSync; te
     {['owner','sdf'].includes(role) && !draft.blockers.length && !['review','approved'].includes(String(versions[0]?.status)) &&
       <LocalForm fields={{task:'report',tenant,year:String(year),transition:'review'}} label="Request committee review"/>}
     <h3>Version history</h3>
-    <Table columns={['Version','Status','Snapshot','Actions']} rows={versions.map(row => {
+    {versions.length > 0 && <nav className="filter-chips" aria-label="Report version status">
+      {[['','All versions'],['review','In review'],['approved','Approved'],['signed','Signed'],['returned','Returned']].map(([value,label]) =>
+        <Link key={value} href={'?tab=reports&year='+year+(value ? '&state='+value : '')} aria-current={state === value ? 'page' : undefined}>{label}</Link>)}
+    </nav>}
+    <Table empty={versions.length ? 'No versions match this status.' : 'A report version appears here after it is sent for review.'}
+      columns={['Version','Status','Snapshot','Actions']} rows={versions.filter(row => !state || row.status === state).map(row => {
       const base = {task:'report',tenant,year:String(row.year),version:String(row.version)};
       const reviewer = row.status === 'review' && row.submitted_by !== actorId && ['committee','owner'].includes(role);
       const signatory = row.status === 'approved' && row.approved_by !== actorId && row.submitted_by !== actorId &&
         ['signatory','owner'].includes(role);
-      return [String(row.version),String(row.status),
+      return [String(row.version),<Status key="status" value={String(row.status)}/>,
         <div key="snapshot" className="report-version-links">
-          <Link href={'/report-review/' + tenant + '/' + row.year + '/' + row.version}>Read frozen report</Link>
+          <Link href={'/report-review/' + tenant + '/' + row.year + '/' + row.version + (state ? '?state='+state : '')}>Read frozen report</Link>
           <Link href={'/report-snapshot/' + tenant + '/' + row.year + '/' + row.version}>Download JSON</Link>
         </div>,
         <div key="actions">
-          {reviewer && <>
+          {reviewer && <details><summary>Review version {String(row.version)}</summary>
+            <p>Approval sends this saved version to a separate signatory. Returning it sends your feedback to the preparer.</p>
             <LocalForm fields={{...base,transition:'approved'}} label="Approve version"/>
             <LocalForm fields={{...base,transition:'returned'}} label="Return for changes"><Input name="note" label="Feedback"/></LocalForm>
-          </>}
-          {signatory && <LocalForm fields={{...base,transition:'signed'}} label="Sign frozen version"/>}
+          </details>}
+          {signatory && <details><summary>Sign version {String(row.version)}</summary>
+            <p>Signing records your name and the signing date against this saved version. Filing must be recorded separately.</p>
+            <LocalForm fields={{...base,transition:'signed'}} label="Sign frozen version"/>
+          </details>}
           {row.signed_at ? 'Signed ' + String(row.signed_at).slice(0,10) : null}
         </div>];
     })}/>
@@ -159,7 +197,7 @@ function ReportingProgress({ db, tenant, year, role }: { db: DatabaseSync; tenan
 }
 
 export default async function CompanyWorkspace({ params, searchParams }: {
-  params: Promise<{tenant:string}>; searchParams: Promise<{tab?:string;year?:string}>;
+  params: Promise<{tenant:string}>; searchParams: Promise<{tab?:string;year?:string;q?:string;status?:string;state?:string}>;
 }) {
   const actor = await requireActor();
   const { tenant } = await params;
@@ -167,7 +205,10 @@ export default async function CompanyWorkspace({ params, searchParams }: {
   const role = roleFor(db,actor,tenant);
   const company = db.prepare('SELECT name,seta,sdl,parent_id FROM tenants WHERE id=?').get(tenant);
   if (!role || !company) notFound();
-  const {tab = 'overview',year: rawYear} = await searchParams;
+  const {tab = 'overview',year: rawYear,q,status: rawStatus,state: rawState} = await searchParams;
+  const query = typeof q === 'string' ? q.trim().slice(0,100) : '';
+  const state = typeof rawState === 'string' && ['review','approved','signed','returned'].includes(rawState) ? rawState : '';
+  const status = tab === 'employee' && (rawStatus === 'yes' || rawStatus === 'no') ? rawStatus : '';
   const year = rawYear && /^20\d\d$/.test(rawYear) && rawYear !== '2099' ? Number(rawYear) : new Date().getFullYear();
   const reports = (reportRoles as readonly Role[]).includes(role);
   const evidence = (evidenceReaderRoles as readonly Role[]).includes(role);
@@ -184,12 +225,17 @@ export default async function CompanyWorkspace({ params, searchParams }: {
   const reportYear = '&year=' + year;
   const parents = db.prepare(`SELECT t.id,t.name FROM tenants t JOIN membership m ON m.tenant=t.id
     WHERE m.user_id=? AND m.role='owner' AND t.id<>? ORDER BY t.name`).all(actor.id,tenant);
-  return <WorkspaceShell title={String(company.name)} subtitle={'Company workspace · ' + role + ' access'}>
-    <nav className="workspace-nav" aria-label="Company modules">
-      {links.map(([key,label]) => <Link key={key} href={'?tab=' + key + reportYear} aria-current={tab === key ? 'page' : undefined}>{label}</Link>)}
-    </nav>
+  const navigationLabels: Record<string,string> = {
+    reports:'Reports', access:'Settings', mapping:'Occupation mapping', plan:'Training plans',
+    training:'Training records', payroll:'Payroll and levies', consultation:'Consultation', submission:'Filing receipts',
+  };
+  const navigation = links.map(([key,label]) => ({key,label:navigationLabels[key] ?? label,href:'?tab=' + key + reportYear}));
+  const activeTitle = links.find(([key]) => key === tab)?.[1] ?? 'Overview';
+  return <WorkspaceShell title={tab === 'overview' ? String(company.name) : activeTitle}
+    subtitle={tab === 'overview' ? 'Company dashboard · ' + role + ' access' : role + ' access'}
+    items={navigation} active={tab} context={String(company.name)} homeHref={actor.kind === 'sdf' ? '/sdf' : '/dashboard'}>
     {tab === 'overview' && <section className="workspace-panel">
-      <h2>Company dashboard</h2>
+      <h2>What needs attention</h2>
       {reports && <ReportingProgress db={db} tenant={tenant} year={year} role={role}/>}
       <dl className="workspace-metrics">
         {(['employee','mapping','gap','plan','training'] as const).map(kind => <div key={kind}>
@@ -205,8 +251,8 @@ export default async function CompanyWorkspace({ params, searchParams }: {
           .all(tenant).map(row => [String(row.action),String(row.name ?? ''),String(row.subject),String(row.created_at)])}/>
       </details>}
     </section>}
-    {isRecordKind(tab) && <RecordsPanel db={db} tenant={tenant} role={role} kind={tab}/>}
-    {tab === 'reports' && <ReportPanel db={db} tenant={tenant} year={year} role={role} actorId={actor.id}/>}
+    {isRecordKind(tab) && <RecordsPanel db={db} tenant={tenant} role={role} kind={tab} year={year} query={query} status={status}/>}
+    {tab === 'reports' && <ReportPanel db={db} tenant={tenant} year={year} role={role} actorId={actor.id} state={state}/>}
     {tab === 'evidence' && <EvidencePanel db={db} tenant={tenant} role={role}/>}
     {tab === 'support' && <section className="workspace-panel">
       <h2>Support requests</h2>

@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import LocalForm from '@/components/LocalForm';
-import { Input, Select, Table, WorkspaceShell, rand } from '@/components/LocalUI';
+import { Input, Select, Status, Table, WorkspaceShell, rand } from '@/components/LocalUI';
 import { localDb } from '@/local/db';
 import { requireActor } from '@/local/session';
 
@@ -32,7 +32,15 @@ export default async function AdminPage() {
     <Select name="status" label="Status" value={String(row?.status ?? '')} choices={statuses.map(status => [status,status])}/>
     <Input name="reference" label="Reference" value={row ? String(row.reference) : undefined}/>
   </>;
-  return <WorkspaceShell title="Imbhola administration" subtitle="Manage synthetic tenants, enquiries, consultants and commercial records.">
+  return <WorkspaceShell title="Imbhola administration" subtitle="Manage companies, enquiries, consultants and commercial records." homeHref="/admin"
+    items={[
+      {key:'overview',label:'Overview',href:'/admin'},
+      {key:'companies',label:'Accounts',href:'#accounts'},
+      {key:'billing',label:'Billing',href:'#billing'},
+      {key:'enquiries',label:'Enquiries',href:'#enquiries'},
+      {key:'support',label:'Support',href:'#support'},
+      {key:'reports',label:'Reporting rules',href:'#rules'},
+    ]}>
     <section className="workspace-panel"><h2>Operations dashboard</h2>
       <dl className="workspace-metrics">
         <div><dt>Companies</dt><dd>{companies.length}</dd></div>
@@ -42,22 +50,22 @@ export default async function AdminPage() {
       </dl>
       <Table columns={['Company','SETA','Members']} rows={companies.map(row => [String(row.name),String(row.seta),String(row.members)])}/>
     </section>
-    <section className="workspace-panel"><h2>Account verification and consultants</h2>
+    <section className="workspace-panel" id="accounts"><h2>Account verification and consultants</h2>
       <Table columns={['Name','Email','Action']} rows={unverified.map(row => [String(row.name),String(row.email),
         <LocalForm key="verify" fields={{task:'verify',id:String(row.id)}} label="Verify synthetic account"/>,
       ])}/>
       <h3>SDF appointments</h3>
       <Table columns={['Consultant','Company','Expiry']} rows={consultants.map(row => [String(row.consultant),String(row.company ?? 'Unappointed'),String(row.expires ?? '').slice(0,10)])}/>
     </section>
-    <section className="workspace-panel"><h2>Enquiry and demo requests</h2>
+    <section className="workspace-panel" id="enquiries"><h2>Enquiry and demo requests</h2>
       <Table columns={['Name','Company','Email','Request','Consent version','Status']} rows={leads.map(row => [
         String(row.name),String(row.company),String(row.email),String(row.purpose),String(row.consent_version),
         row.reviewed ? 'Reviewed' : <LocalForm key="lead" fields={{task:'leadStatus',id:String(row.id)}} label="Mark reviewed"/>,
       ])}/>
     </section>
-    <section className="workspace-panel"><h2>Subscriptions, contracts and invoices</h2>
+    <section className="workspace-panel" id="billing"><h2>Subscriptions, contracts and invoices</h2>
       <Table columns={['Company','Type','Name','Amount','Status','Reference','Edit']} rows={entries.map(row => [
-        String(row.company),String(row.type),String(row.name),rand.format(Number(row.cents) / 100),String(row.status),String(row.reference),
+        String(row.company),String(row.type),String(row.name),rand.format(Number(row.cents) / 100),<Status key="status" value={String(row.status)}/>,String(row.reference),
         <details key="edit"><summary>Edit commercial record</summary>
           <LocalForm fields={{task:'commercial',tenant:String(row.tenant),id:String(row.id)}} label="Save changes">{fields(row)}</LocalForm>
         </details>,
@@ -67,13 +75,13 @@ export default async function AdminPage() {
         {fields()}
       </LocalForm></details>
     </section>
-    <section className="workspace-panel"><h2>Support queue</h2>
+    <section className="workspace-panel" id="support"><h2>Support queue</h2>
       <Table columns={['Company','Subject','Description','Status']} rows={support.map(row => [
         String(row.company),String(row.title),String(row.detail),row.status === 'resolved' ? 'Resolved' :
           <LocalForm key="resolve" fields={{task:'resolveSupport',tenant:String(row.tenant),id:String(row.id)}} label="Resolve request"/>,
       ])}/>
     </section>
-    <section className="workspace-panel"><h2>Reporting rules</h2>
+    <section className="workspace-panel" id="rules"><h2>Reporting rules</h2>
       <Table columns={['Rules','Version','Status']} rows={[
         ['Internal development checks','local-synthetic-v1','Active for synthetic data'],
         ['Services SETA workbook and PDF','Pending independent verification','Disabled'],

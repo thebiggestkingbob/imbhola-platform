@@ -66,3 +66,17 @@ To use Descope, set `IMBHOLA_IDENTITY_MODE=descope` and configure the project's 
 The draft branch includes a separate pilot entry point at `/pilot`. It uses a Descope flow with a second verification step, lists companies assigned to the signed-in account, and reads and updates workforce rows in PostgreSQL. Workforce changes automatically add database audit events. The existing synthetic review continues to run on SQLite.
 
 Use an isolated staging database and Descope project. Apply migrations 001 through 003 as the database owner, configure a separate login that can assume `imbhola_runtime`, and provision invited identities by verified provider subject. Configure only the branch-specific preview values in `.env.example`. The pilot route stays closed without all of those values, and it is unavailable in production. The pilot slice is ready for provider-level acceptance once those services are configured.
+
+## Redesign review
+
+The redesign starts from commit `887fdfe` on the existing implementation PR. `MASTER_BRIEF.md` and the current route and role checks define the review scope. The preview branch is `feature/imbhola-redesign` and uses its own isolated sample database.
+
+| Review area | Routes and actions |
+| --- | --- |
+| Public site | Homepage, platform, solutions, services, reporting process, resources, pricing, company information, readiness, terms, privacy and accessibility |
+| Access and onboarding | Workspace access, private review, sign-in, role selection, registration, demo and contact forms |
+| Employer and SDF | Dashboards, company and team setup, employee imports and filters, OFO, skills gaps, training, payroll, consultation, evidence and filing receipts |
+| Reporting | Year and status filters, draft checks, version history, review, sign-off, frozen JSON and Excel, and PDF printing |
+| Administration | Account verification, appointments, billing, enquiries, support and reporting sources |
+
+Use the private review passcode and choose a sample role. Sign out to switch roles. Cedar Workshop has a sample version ready for the committee; Atlas Workshop is useful for adding and importing records. Review data is stored in SQLite and is separate from the original implementation preview. The gated live pilot still requires its existing PostgreSQL and identity configuration.

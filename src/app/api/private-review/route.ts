@@ -1,11 +1,10 @@
 import { Sandbox } from '@vercel/sandbox';
 import { setTimeout } from 'node:timers/promises';
-import { reviewLauncherPassword, reviewPasscodeMatches } from '@/local/review-launcher';
+import { reviewLauncherPassword, reviewPasscodeMatches, reviewSandboxName } from '@/local/review-launcher';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
 
-const name = 'imbhola-private-review';
 const port = 3000;
 const retention = 30 * 24 * 60 * 60 * 1000;
 const headers = {'Cache-Control':'private, no-store','X-Robots-Tag':'noindex, nofollow'};
@@ -25,7 +24,8 @@ async function ready(url: URL) {
 
 export async function POST(request: Request) {
   const password = reviewLauncherPassword();
-  if (!password) return new Response(null,{status:404,headers});
+  const name = reviewSandboxName();
+  if (!password || !name) return new Response(null,{status:404,headers});
   const host = request.headers.get('host');
   const origin = request.headers.get('origin');
   if (!host || origin !== 'https://' + host ||

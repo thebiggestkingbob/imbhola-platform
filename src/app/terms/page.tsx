@@ -1,1 +1,9 @@
-export default function Page(){return <main className="container section"><div className="eyebrow">TERMS OF USE</div><h1 className="inner-title">Terms are not yet published.</h1><p className="lead">Imbhola is under development. Final service terms, acceptable-use rules, liability provisions and commercial policies require approval before customer onboarding is enabled.</p><p className="notice">IMBHOLA V3.0 · Development preview. No official SETA reporting is enabled.</p></main>}
+import { PublicPage } from '@/components/PublicPage';
+
+export default function Terms() {
+  return <PublicPage eyebrow="Terms of use" title="Preview terms"
+    description="The current review uses sample data. Final terms, acceptable-use rules and commercial policies require approval before customer onboarding."
+    cta={{label:'See launch readiness',href:'/readiness'}}>
+    <p className="notice">Use sample company and employee information when testing.</p>
+  </PublicPage>;
+}

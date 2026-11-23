@@ -1,30 +1,32 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { Table, rand } from '@/components/LocalUI';
+import { Status, Table, rand } from '@/components/LocalUI';
 import PrintReport from '@/components/PrintReport';
 import { localDb } from '@/local/db';
 import { frozenReport } from '@/local/reporting';
 import { requireActor } from '@/local/session';
 
-export default async function ReportReview({ params }: {params:Promise<{tenant:string;year:string;version:string}>}) {
+export default async function ReportReview({ params,searchParams }: {params:Promise<{tenant:string;year:string;version:string}>;searchParams:Promise<{state?:string}>}) {
   const actor = await requireActor();
   const {tenant,year,version} = await params;
   const frozen = frozenReport(localDb(),actor,tenant,year,version);
   if (!frozen) notFound();
   const {report} = frozen;
+  const {state} = await searchParams;
+  const returnState = state && ['review','approved','signed','returned'].includes(state) ? '&state='+state : '';
   const people = new Map(report.employees.map(({id,data}) => [id,data.number]));
   const mappings = new Map(report.mappings.map(({data,catalogue}) => [data.employee,catalogue]));
   return <main className="container workspace report-review">
     <nav className="workspace-top" aria-label="Report actions">
-      <Link className="text-link" href={'/workspace/'+tenant+'?tab=reports&year='+year}>Back to reporting</Link>
-      <Link className="text-link" href={'/report-snapshot/'+tenant+'/'+year+'/'+version+'?format=xlsx'}>Download internal Excel</Link>
+      <Link className="text-link" href={'/workspace/'+tenant+'?tab=reports&year='+year+returnState}>Back to reporting</Link>
+      <Link className="button button-secondary" href={'/report-snapshot/'+tenant+'/'+year+'/'+version+'?format=xlsx'}>Download internal Excel</Link>
       <PrintReport/>
     </nav>
     <p className="eyebrow">Internal synthetic report · Official Services SETA export disabled</p>
     <h1>WSP and ATR review</h1>
     <p className="lead">{String(report.company?.name ?? tenant)} · ATR {report.year} · WSP {report.year + 1} · Version {version}</p>
     <dl className="workspace-metrics">
-      <div><dt>Status</dt><dd>{frozen.status}</dd></div>
+      <div><dt>Status</dt><dd><Status value={frozen.status}/></dd></div>
       <div><dt>Planned training budget</dt><dd>{rand.format(report.totals.plannedCents / 100)}</dd></div>
       <div><dt>Actual training costs</dt><dd>{rand.format(report.totals.actualCents / 100)}</dd></div>
       <div><dt>Skills levies</dt><dd>{rand.format(report.totals.levyCents / 100)}</dd></div>
