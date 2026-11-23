@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   description: 'A considered workspace for skills development planning, training evidence and reporting readiness.'
 };
 const footerLinks = [
-  ['How it works', '/how-it-works'], ['Skills development', '/skills-development'],
+  ['Launch readiness', '/readiness'], ['About', '/about'], ['How it works', '/how-it-works'], ['Skills development', '/skills-development'],
   ['Pricing', '/pricing'], ['Resources', '/resources'], ['Request demo', '/request-demo'],
   ['Privacy', '/privacy'], ['Terms', '/terms'], ['Accessibility', '/accessibility']
 ] as const;

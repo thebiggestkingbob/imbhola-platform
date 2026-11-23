@@ -1,1 +1,16 @@
-export default function Page(){return <main className="container section"><div className="eyebrow">PLAN YOUR IMPLEMENTATION</div><h1 className="inner-title">Pricing is being finalised.</h1><p className="lead">Imbhola plans to support different employer sizes and managed SDF engagements. No subscription price or package is approved for publication yet. Contact the team to discuss a future pilot.</p><p className="notice">IMBHOLA V3.0 · Development preview. No official SETA reporting is enabled.</p></main>}
+import Link from 'next/link';
+
+export const metadata = { title: 'Pricing' };
+
+export default function Pricing() {
+  return <main className="container section">
+    <div className="eyebrow">SOFTWARE AND MANAGED SERVICES</div>
+    <h1 className="inner-title">Choose the support your team needs.</h1>
+    <div className="grid">
+      <article className="card"><h3>Software subscription</h3><p>Your team manages workforce records, training, evidence and approvals in Imbhola. Appoint an SDF where you need one.</p></article>
+      <article className="card"><h3>Optional managed service</h3><p>Arrange a separate scope for SDF support or reporting preparation. The employer keeps oversight and sign-off.</p></article>
+    </div>
+    <p className="notice">Subscription prices and managed service terms are being finalised.</p>
+    <Link className="button" href="/contact">Discuss your requirements</Link>
+  </main>;
+}
