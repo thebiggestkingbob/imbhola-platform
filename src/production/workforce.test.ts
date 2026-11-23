@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { createLocalJWKSet, exportJWK, generateKeyPair, SignJWT } from 'jose';
-import { productionWorkspaceConfig } from './config.ts';
+import { pilotWorkspaceConfig, productionWorkspaceConfig } from './config.ts';
 import { verifyWorkspaceIdentity } from './identity.ts';
 
 const issuer = 'https://identity.example.test';
@@ -77,4 +77,30 @@ test('Descope identities require a verified, recent MFA session for the selected
   assert.equal(await bound('Bearer synthetic.token'),undefined);
   const rejected = createDescopeWorkspaceVerifier(project,async () => { throw new Error('Other project'); });
   assert.equal(await rejected('Bearer synthetic.token'),undefined);
+});
+
+test('pilot requires distinct branch-only settings and fails closed with production values', () => {
+  const preview = {
+    VERCEL_ENV:'preview',VERCEL_GIT_COMMIT_REF:'feature/v3-3-platform-foundation',IMBHOLA_ENABLE_PILOT_WORKSPACE:'1',
+    IMBHOLA_PILOT_DATABASE_URL:'postgres://runtime:sample@db.example.test/pilot?sslmode=disable',
+    IMBHOLA_PILOT_DESCOPE_PROJECT_ID:'PsyntheticProject',IMBHOLA_PILOT_DESCOPE_FLOW_ID:'pilot-mfa',
+  };
+  assert.deepEqual(pilotWorkspaceConfig(preview),{
+    mode:'descope',database:'postgres://runtime:sample@db.example.test/pilot',
+    projectId:'PsyntheticProject',flowId:'pilot-mfa',
+  });
+  assert.equal(pilotWorkspaceConfig({...preview,VERCEL_ENV:'production'}),undefined);
+  assert.equal(pilotWorkspaceConfig({...preview,VERCEL_GIT_COMMIT_REF:'main'}),undefined);
+  assert.equal(pilotWorkspaceConfig({...preview,IMBHOLA_PILOT_DATABASE_URL:undefined,IMBHOLA_DATABASE_URL:preview.IMBHOLA_PILOT_DATABASE_URL}),undefined);
+  assert.equal(pilotWorkspaceConfig({...preview,IMBHOLA_PILOT_DESCOPE_FLOW_ID:undefined}),undefined);
+});
+
+test('workforce edits enforce supported employee identifiers, statuses and lengths', async () => {
+  const {validateWorkforceEdit} = await import('./workforce.ts');
+  const input = {employeeNumber:'AT-001',jobTitle:' Coordinator ',department:'Training',status:'active',intent:'create'};
+  assert.deepEqual(validateWorkforceEdit(input),{...input,jobTitle:'Coordinator'});
+  assert.equal(validateWorkforceEdit({...input,employeeNumber:'A-001 '}),undefined);
+  assert.equal(validateWorkforceEdit({...input,intent:'delete'}),undefined);
+  assert.equal(validateWorkforceEdit({...input,department:'x'.repeat(121)}),undefined);
+  assert.equal(validateWorkforceEdit({...input,status:'pending'}),undefined);
 });

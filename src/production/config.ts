@@ -10,6 +10,10 @@ function httpsUrl(value?: string) {
 export function productionWorkspaceConfig(env: Record<string,string | undefined> = process.env) {
   if (env.VERCEL_ENV !== 'production' || env.IMBHOLA_ENABLE_PRODUCTION_WORKSPACE !== '1') return;
 
+  return identityAndDatabaseConfig(env);
+}
+
+function identityAndDatabaseConfig(env: Record<string,string | undefined>) {
   try {
     const database = new URL(env.IMBHOLA_DATABASE_URL ?? '');
     if (!['postgres:','postgresql:'].includes(database.protocol) || !database.hostname || !database.username ||
@@ -33,4 +37,18 @@ export function productionWorkspaceConfig(env: Record<string,string | undefined>
   } catch {
     return;
   }
+}
+
+export function pilotWorkspaceConfig(env: Record<string,string | undefined> = process.env) {
+  if (env.VERCEL_ENV !== 'preview' || env.VERCEL_GIT_COMMIT_REF !== 'feature/v3-3-platform-foundation' ||
+      env.IMBHOLA_ENABLE_PILOT_WORKSPACE !== '1') return;
+  const flowId = env.IMBHOLA_PILOT_DESCOPE_FLOW_ID;
+  if (!flowId || !/^[a-z0-9][a-z0-9_-]{0,79}$/.test(flowId)) return;
+  const config = identityAndDatabaseConfig({
+    IMBHOLA_DATABASE_URL:env.IMBHOLA_PILOT_DATABASE_URL,
+    IMBHOLA_IDENTITY_MODE:'descope',
+    NEXT_PUBLIC_DESCOPE_PROJECT_ID:env.IMBHOLA_PILOT_DESCOPE_PROJECT_ID,
+  });
+  if (config?.mode !== 'descope') return;
+  return {...config,flowId};
 }

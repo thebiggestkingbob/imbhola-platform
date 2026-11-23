@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "@descope/node-sdk": "2.22.0",
+    "@descope/react-sdk": "3.5.7",
     "@vercel/sandbox": "4.1.0",
     "jose": "6.2.18",
     "next": "15.5.29",

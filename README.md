@@ -60,3 +60,9 @@ These migrations implement the tenant access foundation. Live identity provision
 The production workforce API at `/api/workspaces/{companyId}/workforce` is disabled unless the production-only settings in `.env.example` are configured. It verifies the identity provider's issuer, audience, signature, expiry and MFA claim, then uses a TLS database connection and the limited runtime role from `002_tenant_access.sql`. A database operator must link the verified issuer and subject to an internal actor. This endpoint reads the workforce for a selected company. The test workspaces continue to use synthetic SQLite records.
 
 To use Descope, set `IMBHOLA_IDENTITY_MODE=descope` and configure the project's `NEXT_PUBLIC_DESCOPE_PROJECT_ID`. Run a sign-in flow that requires MFA. The backend validates the session for that specific project and checks signed MFA claims. Provision the corresponding internal actor using the issuer key `descope:<project-id>` and the verified Descope user ID as subject.
+
+## Private PostgreSQL pilot slice
+
+The draft branch includes a separate pilot entry point at `/pilot`. It uses a Descope flow with a second verification step, lists companies assigned to the signed-in account, and reads and updates workforce rows in PostgreSQL. Workforce changes automatically add database audit events. The existing synthetic review continues to run on SQLite.
+
+Use an isolated staging database and Descope project. Apply migrations 001 through 003 as the database owner, configure a separate login that can assume `imbhola_runtime`, and provision invited identities by verified provider subject. Configure only the branch-specific preview values in `.env.example`. The pilot route stays closed without all of those values, and it is unavailable in production. The pilot slice is ready for provider-level acceptance once those services are configured.

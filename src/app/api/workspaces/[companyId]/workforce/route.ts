@@ -1,45 +1,42 @@
-import { createRemoteJWKSet } from 'jose';
-import { Pool } from 'pg';
-import { productionWorkspaceConfig } from '@/production/config';
-import { verifyWorkspaceIdentity } from '@/production/identity';
-import { createDescopeWorkspaceVerifier } from '@/production/descope';
-import { readWorkforcePage } from '@/production/workforce';
+import { companyIdPattern, limitedWorkspaceJson, workspaceResponse, workspaceServices } from '@/production/services';
+import { readWorkforcePage, validateWorkforceEdit, writeWorkforceEntry } from '@/production/workforce';
 
 export const runtime = 'nodejs';
-const cache = {'Cache-Control':'private, no-store','Vary':'Authorization'};
-const idPattern = /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i;
+type Params = {params:Promise<{companyId:string}>};
 
-let connection: {pool:Pool;verify:ReturnType<typeof createDescopeWorkspaceVerifier>} | undefined;
-
-export async function GET(request: Request, {params}: {params:Promise<{companyId:string}>}) {
-  const config = productionWorkspaceConfig();
-  if (!config) return Response.json({error:'Live workforce access is closed.'},{status:503,headers:cache});
-
+export async function GET(request:Request,{params}:Params) {
+  const connection = workspaceServices();
+  if (!connection) return workspaceResponse({error:'Live workforce access is closed.'},503);
   const {companyId} = await params;
   const after = new URL(request.url).searchParams.get('after') ?? '';
-  if (!idPattern.test(companyId) || after.length > 500) {
-    return Response.json({error:'Invalid company or page selection.'},{status:400,headers:cache});
-  }
-
-  if (!connection) {
-    const oidcVerifier = () => {
-      if (config.mode !== 'oidc') throw new Error('OIDC settings unavailable');
-      const keys = createRemoteJWKSet(config.jwks,{timeoutDuration:4000});
-      return (authorization: string | null) => verifyWorkspaceIdentity(authorization,keys,config);
-    };
-    connection = {
-      pool:new Pool({connectionString:config.database,ssl:{rejectUnauthorized:true},max:4,connectionTimeoutMillis:5000}),
-      verify:config.mode === 'descope' ? createDescopeWorkspaceVerifier(config.projectId) : oidcVerifier(),
-    };
+  if (!companyIdPattern.test(companyId) || after.length > 500) {
+    return workspaceResponse({error:'Invalid company or page selection.'},400);
   }
   const identity = await connection.verify(request.headers.get('Authorization'));
-  if (!identity) return Response.json({error:'Verified sign-in with MFA is required.'},{status:401,headers:cache});
-
+  if (!identity) return workspaceResponse({error:'Verified sign-in with MFA is required.'},401);
   try {
     const page = await readWorkforcePage(connection.pool,identity,companyId.toLowerCase(),after);
-    if (!page) return Response.json({error:'Workspace unavailable.'},{status:404,headers:cache});
-    return Response.json(page,{headers:cache});
+    return page ? workspaceResponse(page) : workspaceResponse({error:'Workspace unavailable.'},404);
   } catch {
-    return Response.json({error:'Live workforce access is temporarily unavailable.'},{status:503,headers:cache});
+    return workspaceResponse({error:'Live workforce access is temporarily unavailable.'},503);
+  }
+}
+
+export async function POST(request:Request,{params}:Params) {
+  const connection = workspaceServices();
+  if (!connection?.pilot) return workspaceResponse({error:'Workforce editing is closed.'},503);
+  const {companyId} = await params;
+  if (!companyIdPattern.test(companyId)) return workspaceResponse({error:'Invalid company selection.'},400);
+  const identity = await connection.verify(request.headers.get('Authorization'));
+  if (!identity) return workspaceResponse({error:'Sign in again and complete both verification steps.'},401);
+  const edit = validateWorkforceEdit(await limitedWorkspaceJson(request));
+  if (!edit) return workspaceResponse({error:'Check the employee number, job title, department and status.'},400);
+  try {
+    const result = await writeWorkforceEntry(connection.pool,identity,companyId.toLowerCase(),edit);
+    if (!result) return workspaceResponse({error:'Company or employee unavailable.'},404);
+    if (result.outcome === 'duplicate') return workspaceResponse({error:'That employee number already exists.'},409);
+    return workspaceResponse({employee:result.employee},edit.intent === 'create' ? 201 : 200);
+  } catch {
+    return workspaceResponse({error:'The employee could not be saved right now.'},503);
   }
 }
