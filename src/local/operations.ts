@@ -164,3 +164,32 @@ export function resolveSupportRequest(db: DatabaseSync, actor: Actor, id: string
     audit(db,String(request.tenant),actor.id,'support.resolved',id);
   });
 }
+
+export function recordReportingSource(db: DatabaseSync, actor: Actor, input: {
+  year: string; title: string; revision: string; url: string; sha256: string;
+}) {
+  requireOperations(actor);
+  const {year} = input;
+  const title = input.title.trim();
+  const revision = input.revision.trim();
+  const sha256 = input.sha256.trim().toLowerCase();
+  if (!/^20[2-9]\d$/.test(year) || !title || title.length > 120 || !revision || revision.length > 80 ||
+      !/^[\da-f]{64}$/.test(sha256)) {
+    throw new Error('Enter a reporting year, document title, revision and 64-character SHA-256 checksum.');
+  }
+  const url = URL.parse(input.url.trim());
+  const officialHosts = ['servicesseta.org.za','www.servicesseta.org.za','servicessetawebsite.blob.core.windows.net'];
+  if (!url || url.protocol !== 'https:' || !officialHosts.includes(url.host) || url.username || url.password ||
+      url.search || url.hash || url.pathname === '/' || url.href.length > 500) {
+    throw new Error('Enter the direct HTTPS link to a published Services SETA source.');
+  }
+  return transaction(db, () => {
+    if (db.prepare('SELECT 1 FROM reporting_sources WHERE reporting_year=? AND title=? AND revision=?')
+      .get(Number(year),title,revision)) throw new Error('That source revision is already recorded.');
+    const id = randomUUID();
+    db.prepare(`INSERT INTO reporting_sources(id,reporting_year,title,revision,url,sha256,recorded_by,recorded_at)
+      VALUES(?,?,?,?,?,?,?,?)`).run(id,Number(year),title,revision,url.href,sha256,actor.id,now());
+    audit(db,null,actor.id,'reporting_source.recorded',id);
+    return id;
+  });
+}

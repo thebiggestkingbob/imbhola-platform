@@ -23,7 +23,7 @@ Run `npm run dev` instead of `npm run dev:local` to exercise the public-only mod
 Run `npm run seed:local -- --walkthrough` to add Cedar Workshop with a populated workforce, OFO mapping, skills gap, WSP, ATR, payroll, consultation and a frozen sample report awaiting review. The sample uses the current year. Running the command again preserves work already recorded for Cedar.
 
 1. Sign in as `committee@imbhola.test`, open Cedar Workshop and choose **Reporting and approvals**. Open **Read frozen report** before approving version 1.
-2. Sign in as `signatory@imbhola.test` to sign that approved version. Open the same report to read it or save an internal PDF via the browser's print dialog.
+2. Sign in as `signatory@imbhola.test` to sign that approved version. Open the same report to read it, download the internal Excel workbook or save an internal PDF via the browser's print dialog.
 3. Sign in as `sdf@imbhola.test` to see Cedar on the client list. Open **External receipts and grants** to test recording a synthetic receipt and later outcome.
 
 The printable report is an internal synthetic report. It uses the exact saved version and shows its review history and SHA-256 digest.
@@ -41,7 +41,7 @@ npm run build
 
 Local authentication and database actions run in local development or in the isolated review process. The production website exposes public information. Hosted contact collection still needs approved privacy ownership, retention and lead handling. The review vault accepts synthetic PDF, PNG, JPEG and UTF-8 text attachments up to 2 MB. It checks basic file signatures and confirms the stored digest when downloading. Malware scanning is required before accepting real evidence. Production identity and MFA, database row-level security, scanned storage, commercial payment integrations and pilot acceptance remain separate release gates.
 
-The internal report uses synthetic rules with an explicit year: ATR for that calendar year and WSP for the following year. Its JSON snapshots support workflow testing. Services SETA Excel/PDF outputs require independently verified templates, rules, OFO sources and reconciliation. External portal submission remains an authorised person's responsibility.
+The internal report uses synthetic rules with an explicit year: ATR for that calendar year and WSP for the following year. Its JSON snapshots and frozen Excel workbooks support workflow testing. Administration can record the published source URL, revision and checksum for each reporting year without enabling official exports. Services SETA Excel/PDF outputs require independently verified templates, rules, OFO sources and reconciliation. External portal submission remains an authorised person's responsibility.
 
 ## Private interactive review
 

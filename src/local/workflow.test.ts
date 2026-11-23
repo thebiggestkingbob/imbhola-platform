@@ -3,13 +3,15 @@ import { test } from 'node:test';
 import type { DatabaseSync } from 'node:sqlite';
 import { requireRole, roleFor, sessionActor, signIn, type Actor, type Kind } from './auth.ts';
 import { openDatabase } from './db.ts';
-import { acceptInvitation, captureLead, createCompany, createSupportRequest, register, resolveSupportRequest,
+import { acceptInvitation, captureLead, createCompany, createSupportRequest, recordReportingSource, register, resolveSupportRequest,
   saveCommercial, setMembership, updateCompany, verifyAccount } from './operations.ts';
 import { localWorkspaceEnabled, reviewWorkspaceEnabled } from './mode.ts';
 import { readRecords, saveRecord, workforceImport } from './records.ts';
 import { addEvidence, changeReport, evidenceMetadata, frozenReport, readEvidence, reportDraft } from './reporting.ts';
 import { seed, seedWalkthrough } from './seed.ts';
+import { reportWorkbook } from './report-workbook.ts';
 
+import { hasReviewCookie, reviewCookieToken } from './review-gate.ts';
 import { reviewLauncherPassword, reviewPasscodeMatches } from './review-launcher.ts';
 
 const password = 'synthetic-password-for-tests';
@@ -172,6 +174,35 @@ test('walkthrough provides a real frozen report that reviewers can approve and s
   assert.equal(signed?.digest,initial.digest);
 }));
 
+test('internal Excel downloads use the frozen version and label the workbook for review', async () => {
+  const db = openDatabase(':memory:');
+  try {
+    seed(db,password);
+    seedWalkthrough(db,2026);
+    const frozen = frozenReport(db,actor('committee'),'walkthrough','2026','1');
+    assert.ok(frozen);
+    const bytes = await reportWorkbook(frozen,'1');
+    assert.equal(bytes.subarray(0,4).toString('hex'),'504b0304');
+    assert.ok(bytes.includes(Buffer.from('xl/workbook.xml')));
+    assert.ok(bytes.includes(Buffer.from('xl/worksheets/sheet9.xml')));
+  } finally {
+    db.close();
+  }
+});
+
+test('only operations can record immutable reporting-source revisions', () => fixture(db => {
+  const source = {year:'2026',title:'Mandatory grant forms',revision:'2026 sample',
+    url:'https://servicesseta.org.za/example.pdf',sha256:'a'.repeat(64)};
+  assert.throws(() => recordReportingSource(db,owner,source),/Operations/);
+  assert.throws(() => recordReportingSource(db,ops,{...source,url:'https://servicesseta.org.za.example.com/forms.pdf'}),/direct HTTPS/);
+  assert.throws(() => recordReportingSource(db,ops,{...source,sha256:'unverified'}),/checksum/);
+  const id = recordReportingSource(db,ops,source);
+  assert.equal(db.prepare('SELECT recorded_by FROM reporting_sources WHERE id=?').get(id)?.recorded_by,ops.id);
+  assert.throws(() => recordReportingSource(db,ops,source),/already recorded/);
+  assert.throws(() => db.prepare('DELETE FROM reporting_sources WHERE id=?').run(id),/history/);
+  assert.equal(db.prepare("SELECT count(*) AS total FROM audit WHERE action='reporting_source.recorded'").get()?.total,1);
+}));
+
 test('workspace development authentication stays disabled in hosted and production environments', t => {
   const previous = { ...process.env };
   t.after(() => { process.env = previous; });
@@ -208,4 +239,15 @@ test('review launcher is restricted to the draft branch preview and checks its p
   assert.equal(reviewLauncherPassword(),passcode);
   assert.equal(reviewPasscodeMatches(passcode,passcode),true);
   assert.equal(reviewPasscodeMatches('incorrect',passcode),false);
+});
+
+
+test('test-account selection requires a current private review cookie', () => {
+  const now = 1_800_000_000_000;
+  const token = reviewCookieToken(password,'1800000060');
+  assert.equal(hasReviewCookie(token,password,now),true);
+  assert.equal(hasReviewCookie(token,password,now + 60_000),false);
+  assert.equal(hasReviewCookie(token,'other review passcode',now),false);
+  assert.equal(hasReviewCookie('1800000100' + token.slice(10),password,now),false);
+  assert.equal(hasReviewCookie(undefined,password,now),false);
 });

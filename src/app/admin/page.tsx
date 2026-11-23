@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import LocalForm from '@/components/LocalForm';
 import { Input, Select, Table, WorkspaceShell, rand } from '@/components/LocalUI';
@@ -20,6 +21,8 @@ export default async function AdminPage() {
     FROM leads l ORDER BY l.created_at DESC`).all();
   const support = db.prepare(`SELECT s.*,t.name AS company FROM support s JOIN tenants t ON t.id=s.tenant
     ORDER BY s.created_at DESC`).all();
+  const reportingSources = db.prepare(`SELECT s.*,u.name AS recorder FROM reporting_sources s
+    JOIN users u ON u.id=s.recorded_by ORDER BY s.reporting_year DESC,s.recorded_at DESC`).all();
   const types = ['subscription','managed contract','invoice'];
   const statuses = ['draft','active','suspended','ended','issued','paid','void'];
   const fields = (row?: typeof entries[number]) => <>
@@ -75,6 +78,22 @@ export default async function AdminPage() {
         ['Internal development checks','local-synthetic-v1','Active for synthetic data'],
         ['Services SETA workbook and PDF','Pending independent verification','Disabled'],
       ]}/>
+      <h3>Services SETA source register</h3>
+      <p>Record the exact published files and revisions used during review. Official exports require a separate independent verification.</p>
+      <p><Link href="https://servicesseta.org.za/employers/">Find published mandatory grant documents</Link></p>
+      <Table columns={['Reporting year','Document','Revision','SHA-256','Recorded by']} rows={reportingSources.map(row => [
+        String(row.reporting_year),<Link key="document" href={String(row.url)}>{String(row.title)}</Link>,String(row.revision),
+        <code key="checksum" className="report-digest">{String(row.sha256)}</code>,String(row.recorder),
+      ])}/>
+      <details><summary>Record a source revision</summary>
+        <LocalForm fields={{task:'reportingSource'}} label="Record source">
+          <Input name="year" label="Reporting year"/>
+          <Input name="title" label="Document title"/>
+          <Input name="revision" label="Published revision"/>
+          <Input name="url" label="Published document link" type="url"/>
+          <Input name="sha256" label="SHA-256 checksum"/>
+        </LocalForm>
+      </details>
     </section>
   </WorkspaceShell>;
 }

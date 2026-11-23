@@ -77,3 +77,14 @@ CREATE TABLE IF NOT EXISTS support (
   tenant TEXT NOT NULL REFERENCES tenants(id), id TEXT PRIMARY KEY, title TEXT NOT NULL,
   detail TEXT NOT NULL, status TEXT NOT NULL CHECK(status IN ('open','resolved')), created_at TEXT NOT NULL
 ) STRICT;
+CREATE TABLE IF NOT EXISTS reporting_sources (
+  id TEXT PRIMARY KEY,
+  reporting_year INTEGER NOT NULL CHECK(reporting_year BETWEEN 2020 AND 2099),
+  title TEXT NOT NULL, revision TEXT NOT NULL, url TEXT NOT NULL, sha256 TEXT NOT NULL,
+  recorded_by TEXT NOT NULL REFERENCES users(id), recorded_at TEXT NOT NULL,
+  UNIQUE(reporting_year,title,revision)
+) STRICT;
+CREATE TRIGGER IF NOT EXISTS reporting_sources_no_update BEFORE UPDATE ON reporting_sources
+BEGIN SELECT RAISE(ABORT,'Source history is immutable'); END;
+CREATE TRIGGER IF NOT EXISTS reporting_sources_no_delete BEFORE DELETE ON reporting_sources
+BEGIN SELECT RAISE(ABORT,'Source history cannot be deleted'); END;

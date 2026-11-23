@@ -6,9 +6,10 @@ import { redirect } from 'next/navigation';
 import { cookieName, digest, signIn } from './auth';
 import { localDb } from './db';
 import { localWorkspaceEnabled, reviewWorkspaceEnabled } from './mode';
-import { acceptInvitation, captureLead, createCompany, createSupportRequest, register, requireOperations, resolveSupportRequest, saveCommercial, setMembership, updateCompany, verifyAccount } from './operations';
+import { acceptInvitation, captureLead, createCompany, createSupportRequest, recordReportingSource, register, requireOperations, resolveSupportRequest, saveCommercial, setMembership, updateCompany, verifyAccount } from './operations';
 import { isRecordKind, saveRecord, workforceImport, type Data } from './records';
 import { addEvidence, changeReport, evidenceSizeLimit } from './reporting';
+import { hasReviewCookie, reviewAccounts, reviewCookieName } from './review-gate';
 import { currentActor } from './session';
 
 export type FormResult = {
@@ -34,10 +35,25 @@ export async function workspaceAction(_: FormResult, form: FormData): Promise<Fo
       register(db,field('name'),field('email'),field('password'),field('kind'));
       return { message: 'Request recorded. An Imbhola operator must verify the synthetic account.' };
     }
-    if (task === 'login') {
-      const token = signIn(db,field('email'),field('password'));
+    if (task === 'login' || task === 'reviewLogin') {
+      const jar = await cookies();
+      let email = field('email');
+      let password = field('password');
+      if (task === 'reviewLogin') {
+        const reviewPassword = process.env.IMBHOLA_REVIEW_PASSWORD;
+        const account = field('account');
+        if (!reviewWorkspaceEnabled() || !reviewPassword || !reviewAccounts.some(([id]) => id === account) ||
+            !hasReviewCookie(jar.get(reviewCookieName)?.value,reviewPassword)) {
+          return {error:'Unlock the private review before choosing a test account.'};
+        }
+        email = account + '@imbhola.test';
+        password = reviewPassword;
+      }
+      const token = signIn(db,email,password);
       if (!token) return { error: 'Sign-in failed. Check your local credentials and account verification.' };
-      (await cookies()).set(cookieName,token,{httpOnly:true,secure:reviewWorkspaceEnabled(),sameSite:'strict',maxAge:8 * 3600,path:'/'});
+      const previous = jar.get(cookieName)?.value;
+      if (previous) db.prepare('DELETE FROM sessions WHERE token=?').run(digest(previous));
+      jar.set(cookieName,token,{httpOnly:true,secure:reviewWorkspaceEnabled(),sameSite:'strict',maxAge:8 * 3600,path:'/'});
       destination = '/dashboard';
     } else if (task === 'logout') {
       const jar = await cookies();
@@ -94,6 +110,10 @@ export async function workspaceAction(_: FormResult, form: FormData): Promise<Fo
         }
         case 'report':
           changeReport(db,actor,tenant,Number(field('year')),field('transition'),Number(field('version')),field('note'));
+          break;
+        case 'reportingSource':
+          recordReportingSource(db,actor,{year:field('year'),title:field('title'),revision:field('revision'),
+            url:field('url'),sha256:field('sha256')});
           break;
         case 'leadStatus': {
           requireOperations(actor);

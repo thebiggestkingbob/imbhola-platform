@@ -17,6 +17,7 @@ export default async function ReportReview({ params }: {params:Promise<{tenant:s
   return <main className="container workspace report-review">
     <nav className="workspace-top" aria-label="Report actions">
       <Link className="text-link" href={'/workspace/'+tenant+'?tab=reports&year='+year}>Back to reporting</Link>
+      <Link className="text-link" href={'/report-snapshot/'+tenant+'/'+year+'/'+version+'?format=xlsx'}>Download internal Excel</Link>
       <PrintReport/>
     </nav>
     <p className="eyebrow">Internal synthetic report · Official Services SETA export disabled</p>

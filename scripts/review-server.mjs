@@ -1,6 +1,7 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import { createServer } from 'node:http';
 import next from 'next';
+import { hasReviewCookie, reviewCookieName, reviewCookieToken } from '../src/local/review-gate.ts';
 
 const password = process.env.IMBHOLA_REVIEW_PASSWORD;
 const host = process.env.IMBHOLA_REVIEW_HOST;
@@ -12,7 +13,7 @@ if (process.env.IMBHOLA_REVIEW !== '1' || process.env.VERCEL || process.env.VERC
 }
 
 const origin = 'https://' + host;
-const cookieName = '__Host-imbhola-review';
+const cookieName = reviewCookieName;
 const validFor = 4 * 60 * 60;
 const gatePath = '/review-unlock';
 const app = next({ dev: false, hostname: host, port });
@@ -32,9 +33,7 @@ function same(left, right) {
 function hasPass(headers) {
   const token = (headers.cookie || '').split(';').map(part => part.trim())
     .find(part => part.startsWith(cookieName + '='))?.slice(cookieName.length + 1);
-  if (!token || !/^\d{10}\.[\w-]{43}$/.test(token)) return false;
-  const [expiry, signature] = token.split('.');
-  return Number(expiry) > Date.now() / 1000 && same(signature,mac('review-cookie:' + expiry));
+  return hasReviewCookie(token,password);
 }
 
 function gate(res, issue = '') {
@@ -83,7 +82,7 @@ createServer(async (req,res) => {
       const expiry = String(Math.floor(Date.now() / 1000) + validFor);
       res.writeHead(303,{
         'Location':'/login',
-        'Set-Cookie':cookieName+'='+expiry+'.'+mac('review-cookie:' + expiry)+'; Secure; HttpOnly; SameSite=Strict; Path=/; Max-Age='+validFor,
+        'Set-Cookie':cookieName+'='+reviewCookieToken(password,expiry)+'; Secure; HttpOnly; SameSite=Strict; Path=/; Max-Age='+validFor,
       }).end();
       return;
     }

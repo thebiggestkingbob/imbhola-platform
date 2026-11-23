@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { reviewWorkspaceEnabled } from '@/local/mode';
+import { reviewAccounts } from '@/local/review-gate';
 import LocalForm from './LocalForm';
 import { Input, Select } from './LocalUI';
 
@@ -10,9 +11,12 @@ export default function LocalAccount({ register = false }: { register?: boolean 
     <p className="eyebrow">{review ? 'PRIVATE REVIEW' : 'LOCAL DEVELOPMENT'}</p>
     <h1 className="inner-title">{register ? 'Request a synthetic account.' : title}</h1>
     <p className="lead">Use synthetic @imbhola.test accounts and synthetic company information.</p>
-    {review && !register && <details open>
+    {review && !register && <LocalForm fields={{task:'reviewLogin'}} label="Open workspace">
+      <Select name="account" label="Choose a test role" choices={reviewAccounts}/>
+    </LocalForm>}
+    {review && !register && <details>
       <summary>Test accounts and walkthrough</summary>
-      <p>Use the review passcode as the password for every test account.</p>
+      <p>Choose any role to use its sample account. Sign out to switch roles.</p>
       <ol>
         <li>Sign in as <strong>owner@imbhola.test</strong>. Open Atlas Workshop to test employees, OFO mappings, training and evidence.</li>
         <li>Use <strong>sdf@imbhola.test</strong> to move between client companies and prepare reports.</li>
@@ -20,6 +24,7 @@ export default function LocalAccount({ register = false }: { register?: boolean 
         <li>Use <strong>ops@imbhola.test</strong> to review enquiries, companies, subscriptions, contracts and invoices.</li>
       </ol>
     </details>}
+    {review && !register && <h2>Sign in with another account</h2>}
     <LocalForm fields={{task:register ? 'register' : 'login'}} label={register ? 'Request account' : 'Sign in'}>
       {register && <>
         <Input name="name" label="Synthetic name"/>
