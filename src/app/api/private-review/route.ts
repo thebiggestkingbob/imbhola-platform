@@ -1,7 +1,7 @@
 import { Sandbox } from '@vercel/sandbox';
 import { setTimeout } from 'node:timers/promises';
-import { hasReviewInvitation } from '@/local/review-gate';
-import { reviewLauncherPassword, reviewPasscodeMatches, reviewSandboxName } from '@/local/review-launcher';
+import { createReviewInvitation, hasReviewInvitation } from '@/local/review-gate';
+import { canOpenProtectedReview, reviewLauncherPassword, reviewPasscodeMatches, reviewSandboxName } from '@/local/review-launcher';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -35,17 +35,25 @@ export async function POST(request: Request) {
   }
   const body = await request.text();
   if (body.length > 512) return new Response(null,{status:413,headers});
-  const provided = new URLSearchParams(body).get('passcode') ?? '';
+  const fields = new URLSearchParams(body);
+  if (fields.get('entry') === 'protected-preview' && canOpenProtectedReview(host)) {
+    return launchReview(name,password,createReviewInvitation(password));
+  }
+  const provided = fields.get('passcode') ?? '';
   if (!reviewPasscodeMatches(provided,password)) return sendTo('/private-review?status=invalid');
 
-  return launchReview(name,password);
+  return launchReview(name,password,name === 'imbhola-redesign-review' ? createReviewInvitation(password) : undefined);
 }
 
 export async function GET(request: Request) {
   const password = reviewLauncherPassword();
   const name = reviewSandboxName();
-  const ticket = new URL(request.url).searchParams.get('ticket');
+  const params = new URL(request.url).searchParams;
+  const ticket = params.get('ticket');
   if (!password || !name || name !== 'imbhola-redesign-review') return new Response(null,{status:404,headers});
+  if (params.get('open') === '1' && canOpenProtectedReview(request.headers.get('host'))) {
+    return launchReview(name,password,createReviewInvitation(password));
+  }
   if (!ticket || !hasReviewInvitation(ticket,password)) return sendTo('/private-review?status=invalid');
   return launchReview(name,password,ticket);
 }

@@ -11,8 +11,8 @@ import { addEvidence, changeReport, evidenceMetadata, frozenReport, readEvidence
 import { seed, seedWalkthrough } from './seed.ts';
 import { reportWorkbook } from './report-workbook.ts';
 
-import { hasReviewCookie, reviewCookieToken } from './review-gate.ts';
-import { reviewLauncherPassword, reviewPasscodeMatches, reviewSandboxName } from './review-launcher.ts';
+import { createReviewInvitation, hasReviewCookie, hasReviewInvitation, reviewCookieToken } from './review-gate.ts';
+import { canOpenProtectedReview, reviewLauncherPassword, reviewPasscodeMatches, reviewSandboxName } from './review-launcher.ts';
 
 const password = 'synthetic-password-for-tests';
 const actor = (id: string, kind: Kind = 'employer'): Actor => ({id,name:id,email:id + '@imbhola.test',kind});
@@ -254,4 +254,29 @@ test('test-account selection requires a current private review cookie', () => {
   assert.equal(hasReviewCookie(token,'other review passcode',now),false);
   assert.equal(hasReviewCookie('1800000100' + token.slice(10),password,now),false);
   assert.equal(hasReviewCookie(undefined,password,now),false);
+});
+
+
+test('passcode-free entry is limited to the opted-in protected redesign hostname', t => {
+  const previous = { ...process.env };
+  t.after(() => { process.env = previous; });
+  const host = 'imbhola-platform-git-feature-imbhola-redesign-kingbob-3860.vercel.app';
+  process.env.VERCEL = '1';
+  process.env.VERCEL_ENV = 'preview';
+  process.env.VERCEL_GIT_COMMIT_REF = 'feature/imbhola-redesign';
+  delete process.env.IMBHOLA_PROTECTED_REVIEW_ENTRY;
+  assert.equal(canOpenProtectedReview(host),false);
+  process.env.IMBHOLA_PROTECTED_REVIEW_ENTRY = '1';
+  assert.equal(canOpenProtectedReview(host),true);
+  assert.equal(canOpenProtectedReview('imbhola-platform.vercel.app'),false);
+  process.env.VERCEL_ENV = 'production';
+  assert.equal(canOpenProtectedReview(host),false);
+});
+
+test('protected review invitations expire and are bound to the review secret', () => {
+  const now = 1_800_000_000_000;
+  const ticket = createReviewInvitation(password,now);
+  assert.equal(hasReviewInvitation(ticket,password,now),true);
+  assert.equal(hasReviewInvitation(ticket,password,now + 300_000),false);
+  assert.equal(hasReviewInvitation(ticket,'another secret',now),false);
 });

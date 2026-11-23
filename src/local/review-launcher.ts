@@ -23,3 +23,12 @@ export function reviewPasscodeMatches(provided: string, expected: string) {
   const digest = (value: string) => createHash('sha256').update(value).digest();
   return timingSafeEqual(digest(provided),digest(expected));
 }
+
+// This host is covered by Vercel Authentication. Custom and production domains
+// must continue to use their existing access paths.
+export function canOpenProtectedReview(host: string | null) {
+  return process.env.VERCEL === '1' &&
+    process.env.IMBHOLA_PROTECTED_REVIEW_ENTRY === '1' &&
+    reviewSandboxName() === 'imbhola-redesign-review' &&
+    host === 'imbhola-platform-git-feature-imbhola-redesign-kingbob-3860.vercel.app';
+}

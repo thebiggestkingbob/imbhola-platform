@@ -14,6 +14,12 @@ export function hasReviewCookie(token: string | undefined, password: string, now
     timingSafeEqual(Buffer.from(token),Buffer.from(reviewCookieToken(password,expiry)));
 }
 
+export function createReviewInvitation(password: string, now = Date.now()) {
+  const expiry = String(Math.floor(now / 1000) + 300);
+  const signature = createHmac('sha256',password).update('review-invitation:' + expiry).digest('base64url');
+  return expiry + '.' + signature;
+}
+
 export function hasReviewInvitation(token: string | null, password: string, now = Date.now()) {
   if (!token || !/^\d{10}\.[\w-]{43}$/.test(token)) return false;
   const expiry = token.slice(0,10);
