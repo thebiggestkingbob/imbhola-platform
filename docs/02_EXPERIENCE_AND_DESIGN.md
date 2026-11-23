@@ -1,6 +1,8 @@
 # 02 — Design direction and user experience
 
-**Locked direction:** 04, Editorial Enterprise. Elegant editorial hierarchy; substantial whitespace; readable typography; clean structured dashboards; warm ivory, forest/ink and restrained clay as **provisional** tokens, not final brand approval.
+**Current user direction (23 November 2026): Looply social platform.** This supersedes Editorial Enterprise. Reference: https://www.behance.net/gallery/234665557/Looply-Social-Media-Platform-Mobile-App-UX-UI-Design
+
+Use cool light grey surfaces, white rounded feed cards, pink accents, circular profile markers, compact typography and app-like navigation. People and team progress lead the experience. Apply consistently to the public site, access screens and every workspace role. Keep the existing reporting workflows and permissions. Do not invent posts, reactions, messages or activity; illustrative content must be labelled.
 
 ## Site experience
 Clear user paths from awareness to solution comparison, about/trust, contact/demo, signup, verification and appropriate workspace. Avoid dead-end buttons and misleading functional appearance.

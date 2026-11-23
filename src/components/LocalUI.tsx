@@ -64,11 +64,11 @@ export function WorkspaceShell({title,subtitle,children,items = [],active = 'ove
     <aside className="workspace-sidebar">
       <Brand/>
       <Link className="workspace-switch" href={homeHref}><Building2 size={19} aria-hidden="true"/><span>{context ?? 'Your workspace'}</span></Link>
-      <nav aria-label="Workspace navigation"><WorkspaceLinks items={items} active={active}/></nav>
+      <p className="sidebar-label">Your team space</p><nav aria-label="Workspace navigation"><WorkspaceLinks items={items} active={active}/></nav>
     </aside>
     <main className="workspace workspace-content">
       <header className="workspace-header">
-        <div className="workspace-header-top"><div className="workspace-context"><Link href={homeHref}>Workspaces</Link>{context && <span>{context}</span>}</div>
+        <div className="workspace-header-top"><div className="workspace-context"><Link href={homeHref}>My spaces</Link>{context && <span>{context}</span>}</div>
           <div className="workspace-account">{(demoRuntimeEnabled() || reviewWorkspaceEnabled()) && <span className="status">Demo data</span>}
             <LocalForm fields={{task:'logout'}} label="Sign out"/></div></div>
         <div className="workspace-heading"><div><h1>{title}</h1>{subtitle && <p className="lead">{subtitle}</p>}</div>{action}</div>
