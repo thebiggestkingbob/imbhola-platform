@@ -232,8 +232,16 @@ export default async function CompanyWorkspace({ params, searchParams }: {
   const navigation = links.map(([key,label]) => ({key,label:navigationLabels[key] ?? label,href:'?tab=' + key + reportYear}));
   const activeTitle = links.find(([key]) => key === tab)?.[1] ?? 'Overview';
   return <WorkspaceShell title={tab === 'overview' ? String(company.name) : activeTitle}
-    subtitle={tab === 'overview' ? 'Company dashboard · ' + role + ' access' : role + ' access'}
+    subtitle={tab === 'overview' ? 'Your people, training and progress · ' + role + ' access' : role + ' access'}
     items={navigation} active={tab} context={String(company.name)} homeHref={actor.kind === 'sdf' ? '/sdf' : '/dashboard'}>
+    {tab === 'overview' && canView('training',role) && <section className="team-feed" aria-labelledby="team-feed-title">
+      <div className="team-feed-heading"><h2 id="team-feed-title">In your team space</h2><Link className="text-link" href={'?tab=training'+reportYear}>View training</Link></div>
+      {readRecords(db,tenant,'training').length ? readRecords(db,tenant,'training').slice(-3).reverse().map(({id,data}) => <article className="feed-card" key={id}>
+        <header className="feed-person"><span className="profile-circle" aria-hidden="true">{String(company.name).slice(0,2).toUpperCase()}</span><div><strong>{String(company.name)}</strong><small>Training record · {data.date}</small></div></header>
+        <h3>{data.course}</h3><p>{data.provider}</p>{data.outcome && <Status value={data.outcome}/>}
+        <Link className="text-link" href={'?tab=training'+reportYear}>Open training records</Link>
+      </article>) : <div className="feed-card"><h3>Your team’s next chapter starts here.</h3><p>Training records will appear here as your team adds them.</p><Link className="text-link" href={'?tab=training'+reportYear}>Explore training</Link></div>}
+    </section>}
     {tab === 'overview' && <section className="workspace-panel">
       <h2>What needs attention</h2>
       {reports && <ReportingProgress db={db} tenant={tenant} year={year} role={role}/>}

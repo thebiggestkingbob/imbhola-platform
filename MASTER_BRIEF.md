@@ -10,7 +10,7 @@ Turn Imbhola's skills development reporting practice into a complete, plain-lang
 - Commercial model: **hybrid SaaS + optional managed SDF/reporting services**.
 - Release order: **public website first, secure controlled pilot second, general availability after acceptance**.
 - One repository: `thebiggestkingbob/imbhola-platform`. Preserve draft PR #6 and main.
-- Plain-language, mobile-friendly design; Editorial Enterprise direction.
+- Plain-language, mobile-friendly design; Looply social-platform direction (user correction, 23 November 2026).
 
 ## End-to-end working journey
 1. Discover platform and enquire through a lawful consented lead form.

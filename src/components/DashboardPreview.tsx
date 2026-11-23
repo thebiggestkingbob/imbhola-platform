@@ -1,18 +1,20 @@
-import { Check, FileText, GraduationCap, LayoutGrid, UsersRound } from 'lucide-react';
-import { Status } from './LocalUI';
+import Link from 'next/link';
+import { BadgeCheck, FileText, GraduationCap, UsersRound, FolderOpen } from 'lucide-react';
 
 export default function DashboardPreview() {
-  return <figure className="dashboard-preview" aria-label="Example of the Imbhola reporting workspace">
-    <figcaption><span className="eyebrow-dot"/> Workspace preview <span>Sample data</span></figcaption>
-    <div className="preview-board">
-      <div className="preview-rail" aria-hidden="true"><LayoutGrid size={18}/><UsersRound size={18}/><GraduationCap size={18}/><FileText size={18}/></div>
-      <div className="preview-body">
-        <div className="preview-title"><div><small>Cedar Workshop</small><strong>Reporting overview</strong></div><span>2026</span></div>
-        <dl className="workspace-metrics preview-metrics"><div><dt>Employees</dt><dd>12</dd></div><div><dt>Training records</dt><dd>8</dd></div><div><dt>Evidence files</dt><dd>6</dd></div></dl>
-        <div className="preview-task"><div className="icon-tile"><FileText size={19} aria-hidden="true"/></div><div><strong>WSP and ATR</strong><small>Version 1 · Ready for committee</small></div></div>
-        <div className="preview-row"><Check size={16} aria-hidden="true"/><span>Workforce mapped</span><Status value="Ready"/></div>
-        <div className="preview-row"><FileText size={16} aria-hidden="true"/><span>Committee review</span><Status value="review"/></div>
-      </div>
-    </div>
+  return <figure className="social-preview" aria-label="Illustrative Imbhola workspace with sample data">
+    <figcaption><strong>Your team. In the loop.</strong><span>Illustrative workspace</span></figcaption>
+    <div className="social-preview-tabs"><strong>Team space</strong><span>Training</span><span>Evidence</span></div>
+    <div className="people-strip">{[['HR','Your people'],['SD','Your SDF'],['TR','Training'],['RC','Review']].map(([initials,label]) => <div key={label}><span className="profile-circle">{initials}</span><small>{label}</small></div>)}</div>
+    <article className="feed-card">
+      <header className="feed-person"><span className="profile-circle">CW</span><div><strong>Cedar Workshop <BadgeCheck size={16} aria-label="Sample company"/></strong><small>Team space · Sample training update</small></div></header>
+      <p>Small steps. Real progress.<br/>Bring your people, their training and the evidence together.</p>
+      {/* Owned project photography; this is explicitly illustrative, not a live activity stream. */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/skills-workshop.webp" alt="People taking part in a practical skills workshop" width="1200" height="800"/>
+      <footer><span><GraduationCap size={17}/> Training</span><span><FolderOpen size={17}/> Supporting evidence</span></footer>
+    </article>
+    <Link className="feed-shortcut" href="/platform"><span className="icon-tile"><FileText size={21}/></span><span><strong>Keep everyone moving together</strong><small>Explore the Imbhola workflow</small></span></Link>
+    <div className="preview-social-nav" aria-hidden="true"><UsersRound size={21}/><GraduationCap size={21}/><span>+</span><FolderOpen size={21}/><FileText size={21}/></div>
   </figure>;
 }

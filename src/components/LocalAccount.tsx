@@ -9,12 +9,12 @@ import { Input, Select } from './LocalUI';
 export default function LocalAccount({ register = false }: { register?: boolean }) {
   const demo = demoRuntimeEnabled();
   const review = reviewWorkspaceEnabled();
-  const title = demo ? 'Choose your workspace role.' : review ? 'Sign in to the review workspace.' : 'Sign in to the local workspace.';
-  return <main className="container section account-layout"><div>
-    {demo && <Brand/>}
+  const title = 'Your team is here.';
+  return <main className="container section account-layout"><div className="account-welcome">
+    <Brand/>
     <p className="eyebrow">{demo ? 'SAMPLE WORKSPACE' : review ? 'PRIVATE REVIEW' : 'LOCAL DEVELOPMENT'}</p>
     <h1 className="inner-title">{register ? 'Request a synthetic account.' : title}</h1>
-    <p className="lead">{demo ? 'Explore IMBHOLA with sample data. Your changes stay in this browser’s workspace for 24 hours. Use fictional people, companies and documents.' : 'Use sample accounts and company information during this review.'}</p></div><div className="account-card">
+    <p className="lead">{demo ? 'Explore IMBHOLA with sample data. Your changes stay in this browser’s workspace for 24 hours. Use fictional people, companies and documents.' : 'Step into your team space. Choose a sample role to explore how Imbhola brings people and skills together.'}</p><div className="account-people" aria-hidden="true"><span>HR</span><span>SDF</span><span>YOU</span></div><p className="account-caption">People first. Progress together.</p></div><div className="account-card"><h2>{register ? 'Join your team' : 'Welcome to Imbhola'}</h2><p>Pick up where your team left off.</p>
     {(demo || review) && !register && <LocalForm fields={{task:demo ? 'demoLogin' : 'reviewLogin'}} label="Open workspace">
       <Select name="account" label="Choose a test role" choices={reviewAccounts}/>
     </LocalForm>}

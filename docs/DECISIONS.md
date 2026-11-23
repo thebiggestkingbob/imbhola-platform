@@ -2,7 +2,7 @@
 
 ## Approved
 - IMBHOLA V3 end-to-end platform with public site and role-based app.
-- Direction 04 — Editorial Enterprise visual language.
+- Looply social-platform visual language, superseding Direction 04 (user correction, 23 November 2026).
 - Basic employee workspace is a first-release requirement.
 - First SETA unknown: disable official exports until verified.
 - Build milestone reviews before production use.

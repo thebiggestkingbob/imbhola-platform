@@ -12,16 +12,16 @@ export default function Home() {
   return <main>
     <section className="container hero">
       <div className="hero-copy">
-        <p className="eyebrow"><span className="eyebrow-dot"/>Skills development · South Africa</p>
-        <h1>From training plans to <em>reporting day.</em></h1>
-        <p className="lead">Give employers and skills development facilitators one place to plan training, keep evidence organised and prepare reports for review.</p>
+        <p className="eyebrow"><span className="eyebrow-dot"/>People. Skills. Progress.</p>
+        <h1>Your people.<br/>Their growth.<br/><em>One shared space.</em></h1>
+        <p className="lead">Keep your team, training and skills development connected. A shared space for employers and SDFs to move forward together.</p>
         <div className="actions"><Link className="button" href="/request-demo">Request a demo</Link><Link className="button button-secondary" href="/how-it-works">See how it works</Link></div>
       </div>
       <DashboardPreview/>
     </section>
     <section className="soft-section">
       <div className="container section">
-        <p className="eyebrow">The workflow</p><h2>Everything in the right place.</h2>
+        <p className="eyebrow">The workflow</p><h2>Stay connected to what matters.</h2>
         <div className="grid">{pillars.map(({Icon,title,body}) => <article className="card" key={title}>
           <div className="icon-tile"><Icon size={24} aria-hidden="true"/></div><h3>{title}</h3><p>{body}</p>
         </article>)}</div>
@@ -29,7 +29,7 @@ export default function Home() {
     </section>
     <section className="container section audience-section">
       <div>
-        <p className="eyebrow">Made for your team</p><h2>Know what’s ready and what needs attention.</h2>
+        <p className="eyebrow">Made for your team</p><h2>Everyone has a part to play.</h2>
         <p className="lead">Give HR teams, SDFs and signatories a shared view of each reporting cycle, with access based on their role.</p>
         <Link className="button button-secondary" href="/solutions">Explore team roles</Link>
       </div>

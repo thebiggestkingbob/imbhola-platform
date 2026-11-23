@@ -3,7 +3,7 @@
 You are implementing Imbhola, a South African skills-development and reporting platform. This document is the execution guide, not permission to invent regulatory requirements or to claim features are implemented.
 
 ## Non-negotiables
-1. Preserve approved visual direction **04 — Editorial Enterprise**: editorial hierarchy, warm ivory backgrounds, dark forest green/ink, restrained clay accent, clean responsive public site and composed dashboards. Treat colors as provisional until final brand approval.
+1. Follow the user’s Looply social-platform reference. It supersedes Editorial Enterprise: cool grey backgrounds, white feed cards, pink accents, circular profiles, compact typography and app-like navigation. See docs/02_EXPERIENCE_AND_DESIGN.md.
 2. Deliver the full public site, authenticated company onboarding and role-specific workspaces. Use secure, invitation-based memberships and explicit tenant boundaries.
 3. First supported SETA is **unknown**. Keep official SETA rules, template mappings, production exports, calculations implying eligibility, and portal submission **disabled** until verified signed-off rules/templates have been supplied and tested. No fabricated regulatory claims.
 4. Use no real employee or client data in development. Never commit secrets. Apply POPIA-aligned data minimization, authorization, audit logging, secure evidence handling, and MFA for privileged roles.

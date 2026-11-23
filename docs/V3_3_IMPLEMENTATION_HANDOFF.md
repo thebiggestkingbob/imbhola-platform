@@ -4,7 +4,7 @@
 - First compliance adapter: **Services SETA**.
 - Commercial model: **hybrid** (self-service SaaS + separately contracted managed reporting services).
 - Release order: **public website first**, secure reporting pilot second.
-- Preserve Direction 04 — Editorial Enterprise; final design tokens require approval.
+- Follow the current Looply social-platform direction in docs/02_EXPERIENCE_AND_DESIGN.md; it supersedes Direction 04.
 
 ## Delivery boundaries
 R0 public website: home, employers, SDFs, services, how-it-works, contact, privacy and terms. Enquiry forms require real storage/notification configuration and privacy review before activation.
