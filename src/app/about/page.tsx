@@ -1,1 +1,13 @@
-export default function About(){return <main className="container section"><div className="eyebrow">ABOUT IMBHOLA</div><h1 className="inner-title">Better reporting starts<br/><em>with better organisation.</em></h1><p className="lead">Imbhola is being developed to help South African employers and skills development practitioners work with more clarity, accountability and consistency across the skills development cycle.</p><div className="card"><h2>Our approach</h2><p>Make complex administrative work understandable, protect sensitive information and keep every decision and document traceable. Imbhola is a platform in development, not an official SETA portal or a guarantee of grant funding.</p></div></main>}
+import Image from 'next/image';
+import { PublicPage } from '@/components/PublicPage';
+
+export default function About() {
+  return <PublicPage eyebrow="About Imbhola" title="Skills development, made clearer."
+    description="Imbhola helps South African employers and skills development practitioners organise the work behind their training and reporting."
+    cta={{label:'See how it works',href:'/how-it-works'}}>
+    <div className="about-feature">
+      <Image src="/skills-workshop.webp" alt="Two professionals reviewing a training schedule in a workshop" width={1000} height={667} sizes="(max-width: 640px) 90vw, 45vw"/>
+      <div><h2>Good reporting starts throughout the year.</h2><p>Keep workforce information, evidence and decisions organised as the work happens. Employers retain oversight and authorised representatives handle external filings.</p></div>
+    </div>
+  </PublicPage>;
+}

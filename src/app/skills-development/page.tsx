@@ -1,1 +1,12 @@
-export default function Page(){return <main className="container section"><div className="eyebrow">SKILLS DEVELOPMENT, EXPLAINED</div><h1 className="inner-title">Make the terminology work for you.</h1><p className="lead">A Workplace Skills Plan (WSP) documents planned training. An Annual Training Report (ATR) records training undertaken. SETAs are sector education and training authorities; occupational codes and PIVOTAL classifications must follow verified reference materials. This preview is general information, not legal advice.</p><p className="notice">IMBHOLA V3.0 · Development preview. No official SETA reporting is enabled.</p></main>}
+import { PublicCard, PublicPage } from '@/components/PublicPage';
+
+export default function SkillsDevelopment() {
+  return <PublicPage eyebrow="Skills development" title="Understand the terms behind the work."
+    cta={{label:'See the reporting process',href:'/how-it-works'}}>
+    <div className="grid">
+      <PublicCard title="Workplace Skills Plan"><p>The WSP records the training your organisation plans to deliver.</p></PublicCard>
+      <PublicCard title="Annual Training Report"><p>The ATR records completed training, who took part and what it cost.</p></PublicCard>
+      <PublicCard title="Occupation and qualification codes"><p>Use verified reference materials when choosing OFO codes and PIVOTAL classifications.</p></PublicCard>
+    </div>
+  </PublicPage>;
+}

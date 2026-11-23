@@ -1,1 +1,21 @@
-import Link from 'next/link';export default function Platform(){return <main className="container section"><div className="eyebrow">THE PLATFORM</div><h1 className="inner-title">Connected work.<br/><em>Clear accountability.</em></h1><p className="lead">Plan skills development, coordinate training, store evidence and prepare to report in a structured workflow.</p><div className="grid">{[['Workforce','Bring employee records and workforce snapshots together.'],['Training','Plan learning, assign responsibility and capture outcomes.'],['Evidence','Link attendance and supporting documents to the correct records.'],['Reporting','Prepare WSP/ATR information for review and approval.'],['Approvals','Keep consultation, signatures and change histories traceable.'],['Progress','Monitor outstanding actions and reporting readiness.']].map(([a,b],i)=><article className="card" key={a}><span className="card-number">0{i+1} /</span><h3>{a}</h3><p>{b}</p></article>)}</div><p className="notice">Official SETA-specific validation and exports will be activated only after actual templates and rules are independently verified.</p><Link className="button" href="/contact">Talk to us</Link></main>}
+import { ClipboardCheck, FileText, FolderOpen, GraduationCap, ListChecks, UsersRound } from 'lucide-react';
+import { PublicCard, PublicPage } from '@/components/PublicPage';
+
+const capabilities = [
+  [UsersRound,'Workforce','Import employee records, review duplicates and map occupations.'],
+  [GraduationCap,'Training','Plan learning around skills gaps and record attendance, costs and outcomes.'],
+  [FolderOpen,'Evidence','Attach certificates, attendance or payments to the relevant training records.'],
+  [FileText,'Reporting','Prepare WSP and ATR figures, work through blockers and review the totals.'],
+  [ClipboardCheck,'Approvals','Give committees and signatories a version to review and keep its history.'],
+  [ListChecks,'Filing history','Record external receipts, corrections and decisions against the relevant version.'],
+] as const;
+
+export default function Platform() {
+  return <PublicPage eyebrow="The platform" title="From workforce records to a report you can review."
+    description="Keep the records, decisions and documents for each reporting year together."
+    cta={{label:'Talk to us',href:'/contact'}}>
+    <div className="grid">{capabilities.map(([Icon,title,body]) =>
+      <PublicCard key={title} title={title} icon={<Icon size={23} aria-hidden="true"/>}><p>{body}</p></PublicCard>)}</div>
+    <p className="notice">Official Services SETA validation and exports require independently verified rules and templates.</p>
+  </PublicPage>;
+}

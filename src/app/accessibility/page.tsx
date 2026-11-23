@@ -1,1 +1,9 @@
-export default function Page(){return <main className="container section"><div className="eyebrow">ACCESSIBILITY</div><h1 className="inner-title">An inclusive experience is part of the brief.</h1><p className="lead">This site is being designed for keyboard navigation, responsive display, clear contrast and readable content. Accessibility testing and a formal contact channel are still part of the release checklist; compliance has not yet been independently certified.</p><p className="notice">IMBHOLA V3.0 · Development preview. No official SETA reporting is enabled.</p></main>}
+import { PublicPage } from '@/components/PublicPage';
+
+export default function Accessibility() {
+  return <PublicPage eyebrow="Accessibility" title="Use Imbhola on your terms."
+    description="Navigate with a keyboard, use your browser’s zoom and move between the same workspaces on a phone or desktop."
+    cta={{label:'Contact Imbhola',href:'/contact'}}>
+    <p className="notice">If part of the site is difficult to use, tell us the page and the action you were trying to take.</p>
+  </PublicPage>;
+}

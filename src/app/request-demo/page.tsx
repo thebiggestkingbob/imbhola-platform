@@ -1,1 +1,16 @@
-export default function Page(){return <main className="container section"><div className="eyebrow">EXPERIENCE IMBHOLA</div><h1 className="inner-title">Request a future demonstration.</h1><p className="lead">The demo request process has not been configured yet. No information is collected through this preview page. Contact details and secure inquiry submission will be enabled once operational arrangements are approved.</p><p className="notice">IMBHOLA V3.0 · Development preview. No official SETA reporting is enabled.</p></main>}
+import Link from 'next/link';
+import LeadForm from '@/components/LeadForm';
+import { localWorkspaceEnabled } from '@/local/mode';
+
+export default function DemoRequest() {
+  return <main className="container section account-layout">
+    <div><div className="eyebrow">EXPERIENCE IMBHOLA</div>
+    <h1 className="inner-title">Request a demo.</h1>
+    <p className="lead">See how employers and SDFs prepare workforce, training and evidence records across a reporting cycle.</p>
+    </div><section className="account-card"><h2>{localWorkspaceEnabled() ? 'Request a sample demo' : 'Availability'}</h2>
+    {localWorkspaceEnabled() ? <LeadForm purpose="demo"/> : <>
+      <p className="notice">Demo requests will open with the controlled pilot.</p>
+      <Link className="text-link" href="/how-it-works">Explore the reporting workflow</Link>
+    </>}</section>
+  </main>;
+}
